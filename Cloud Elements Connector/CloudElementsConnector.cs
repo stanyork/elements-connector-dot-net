@@ -23,6 +23,10 @@ namespace Cloud_Elements_API
         private HttpClient APIClient;
         #endregion
 
+        public static bool WriteDiagTrace = true;
+        public delegate void DiagTraceEventHanlder(object sender, string info);
+        public event DiagTraceEventHanlder DiagTrace;
+
         public string ElementsPublicUrl { get; set; }
         public Cloud_Elements_API.CloudAuthorization APIAuthorization
         {
@@ -55,6 +59,78 @@ namespace Cloud_Elements_API
             Pong ResultPong = await response.Content.ReadAsAsync<Pong>();
             return ResultPong;
         }
+
+
+        #region "documents/files and folders"
+        /// <summary>
+        /// Retrieves specific metadata on a file or folder associated with an ID from your cloud service using its specified path. 
+        /// </summary>
+        /// <param name="entryType">Specifies if the identifier is a file or a folder</param>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <returns></returns>
+        public async Task<CloudFile> GetDocEntryMetaData(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier)
+        {
+            CloudFile Result;
+            HttpResponseMessage response;
+            string RequestURL;
+            string URLEntryType = "files";
+            if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = "hubs/documents/{1}/{0}/metadata";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/{1}/metadata?path={0}";
+                    break;
+                default:
+                    throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
+            }
+            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            response = await APIExecuteGet(RequestURL);
+            Result = await response.Content.ReadAsAsync<CloudFile>();
+            return Result;
+        }
+
+        /// <summary>
+        /// Update a file or folder metadata associated with an ID or path
+        /// </summary>
+        /// <param name="entryType">Specifies if the identifier is a file or a folder</param>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <param name="fileData"></param>
+        /// <returns>update file data</returns>
+        /// <remarks>Update a file's metadata (tags and path) associated with an ID. 
+        /// For example, if you had a document that was tagged as operations but needed to be tagged as legal, then you would perform a PATCH to update the tag using the tags JSON array field. 
+        /// The PATCH method can update the name or directory of a file as well as move a file by using the path JSON field. 
+        /// You cannot update the size of a file. Specifying a file associated with an ID that does not exist results in an error response.</remarks>
+        public async Task<CloudFile> PatchDocEntryMetaData(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier, CloudFile fileData)
+        {
+
+            HttpResponseMessage response;
+            string RequestURL;
+            string URLEntryType = "files";
+            if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = "hubs/documents/{1}/{0}/metadata";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/{1}/metadata?path={0}";
+                    break;
+                default:
+                    throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
+            }
+
+            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            var content = CloudFileRequestContent(fileData);
+            response = await APIExecutePatch(RequestURL, content);
+            fileData = await response.Content.ReadAsAsync<CloudFile>();
+            return fileData;
+        }
+        #endregion
 
         #region "documents/folders/..."
         public async Task<List<CloudFile>> ListFolderContents(string path, Boolean withTags)
@@ -104,6 +180,36 @@ namespace Cloud_Elements_API
             return ResultList;
         }
 
+
+        /// <summary>
+        /// Retrieves specific metadata on a file associated with an ID from your cloud service using its specified path. 
+        /// </summary>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <returns></returns>
+        public async Task<CloudFile> GetFolderMetaData(FileSpecificationType fileSpecType, string identifier)
+        {
+            CloudFile Result;
+            Result = await GetDocEntryMetaData(DirectoryEntryType.Folder, fileSpecType, identifier);
+            return Result;
+        }
+
+        /// <summary>
+        /// Update a file metadata associated with an ID or path
+        /// </summary>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <param name="fileData"></param>
+        /// <returns>update file data</returns>
+        /// <remarks>Update a file's metadata (tags and path) associated with an ID. 
+        /// For example, if you had a document that was tagged as operations but needed to be tagged as legal, then you would perform a PATCH to update the tag using the tags JSON array field. 
+        /// The PATCH method can update the name or directory of a file as well as move a file by using the path JSON field. 
+        /// You cannot update the size of a file. Specifying a file associated with an ID that does not exist results in an error response.</remarks>
+        public async Task<CloudFile> PatchFolderMetaData(FileSpecificationType fileSpecType, string identifier, CloudFile fileData)
+        {
+            fileData = await PatchDocEntryMetaData(DirectoryEntryType.Folder, fileSpecType, identifier, fileData);
+            return fileData;
+        }
         #endregion
 
         #region "documents/files/..."
@@ -143,7 +249,7 @@ namespace Cloud_Elements_API
         }
 
         /// <summary>
-        /// Update a file's metadata associated with an ID or PATH
+        /// Update a file metadata associated with an ID or path
         /// </summary>
         /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
         /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
@@ -250,6 +356,19 @@ namespace Cloud_Elements_API
 
         #region "Request Support"
 
+        void OnDiagTrace(string info)
+        {
+            if (DiagTrace != null)
+            {
+                DiagTrace(this, info);
+            }
+            else
+            {
+                info = string.Format("{0}: {1}", Tools.TraceTimeNow(), info);
+                System.Diagnostics.Trace.WriteLineIf(WriteDiagTrace, info);
+            }
+        }
+
         HttpContent CloudFileRequestContent(CloudFile filedata)
         {
             Newtonsoft.Json.JsonSerializerSettings jsonSettings = new Newtonsoft.Json.JsonSerializerSettings();
@@ -295,6 +414,12 @@ namespace Cloud_Elements_API
             Path
         }
 
+        public enum DirectoryEntryType
+        {
+            Folder,
+            File
+        }
+
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI)
         {
             return await APIExecuteVerb(verb, URI, null);
@@ -328,7 +453,10 @@ namespace Cloud_Elements_API
             }
 
             response = await HttpRequestTask;
-            TotalRequestMS += DateTime.Now.Subtract(startms).TotalMilliseconds;
+            double msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
+            TotalRequestMS += msUsed;
+            string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URI, response.StatusCode, msUsed / 1000.0);
+            OnDiagTrace(traceInfo);
             response.EnsureSuccessStatusCode();
             return response;
         }

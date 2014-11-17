@@ -52,6 +52,12 @@ namespace Cloud_Element_Test_Form
             statusStrip1.Update();
         }
 
+        private void HandleDiagEvent(object sender, string info)
+        {
+            StatusMsg(info);
+        }
+
+
         private string DefaultSecretsFN;
         private async void Form1_Load(object sender, EventArgs e)
         {
@@ -76,7 +82,7 @@ namespace Cloud_Element_Test_Form
                 }
                 StatusMsg("Secrets needed: specify and APPLY authorization tokens");
             }
-
+            
 
         }
 
@@ -104,6 +110,7 @@ namespace Cloud_Element_Test_Form
             StatusMsg("Pinging ( connection and authorization test )....");
             APIConnector = new Cloud_Elements_API.CloudElementsConnector();
             APIConnector.APIAuthorization = APIAuthorization;
+            APIConnector.DiagTrace += new Cloud_Elements_API.CloudElementsConnector.DiagTraceEventHanlder(HandleDiagEvent);
             Boolean result = false;
             try
             {
@@ -399,8 +406,8 @@ namespace Cloud_Element_Test_Form
             if (!HasGottenFolder()) return;
             try
             {
-                Cloud_Elements_API.CloudFile  currentRow = null;
-             
+                Cloud_Elements_API.CloudFile currentRow = null;
+
                 if (!HasCurrentCloudFile(ref currentRow)) return;
 
                 if (currentRow.size > 0)
@@ -443,8 +450,16 @@ namespace Cloud_Element_Test_Form
             //Type the tag to add.  If includes an = is treated as a KV pair; Try: *TestTag for a random tag or sfKey=* for a guid tag
             if (TagToSet == "*TestTag") TagToSet = "Day-" + DateTime.Today.DayOfWeek.ToString();
             if (TagToSet.StartsWith("sfKey=")) TagToSet = string.Format("sfKey={0}", Guid.NewGuid());
+
+            if (!chkWithTags.Checked || !currentRow.HasTags)
+            {
+                StatusMsg("Getting current Tag(s).... ");
+                currentRow = await APIConnector.GetDocEntryMetaData(currentRow.EntryType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id);
+            }
+
             StatusMsg("Storing Tag: " + TagToSet);
-            await Cloud_Elements_API.TagOperations.SetTag(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id, TagToSet);
+
+            await Cloud_Elements_API.TagOperations.SetTag(APIConnector, currentRow, TagToSet);
             if (!chkWithTags.Checked) chkWithTags.Checked = true;
             await RefreshCurrentFolder();
         }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Cloud_Elements_API
 {
-    public class CloudFile  
+    public class CloudFile
     {
-        public string path {get;set;}
+        public string path { get; set; }
         public string[] tags { get; set; }          // optional
         public string createdDate { get; set; }     // optional
         public int size { get; set; }               // optional
@@ -16,15 +16,28 @@ namespace Cloud_Elements_API
         public string modifiedDate { get; set; }    // optional
         public string id { get; set; }              // optional
         public Boolean directory { get; set; }      // optional
+
+
+        [Newtonsoft.Json.JsonIgnore]
         public Boolean HasTags { get { return ((tags != null) && (tags.Length > 0)); } }
 
+        [Newtonsoft.Json.JsonIgnore]
+        public Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType EntryType
+        {
+            get
+            {
+                Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType deType = CloudElementsConnector.DirectoryEntryType.File;
+                if (directory) deType = CloudElementsConnector.DirectoryEntryType.Folder;
+                return deType;
+            }
+        }
 
         /// <summary>
         /// Adds a tag to the tag collection with support for Key-Value pair tags (name=value)
         /// </summary>
         /// <param name="newTagValue"></param>
         /// <returns>true if the tag was added or updated</returns>
-        public   bool UpdateTag(  string newTagValue)
+        public bool UpdateTag(string newTagValue)
         {
             // 
             bool isKVP = newTagValue.IndexOf("=") > 0;
@@ -33,7 +46,8 @@ namespace Cloud_Elements_API
             if (isKVP) tagName = tagName.Substring(0, tagName.IndexOf("=") - 1);
             int tagIdx = FindTag(tagName, isKVP);
 
-            if (tagIdx >= 0) {
+            if (tagIdx >= 0)
+            {
                 if (this.tags[tagIdx] != newTagValue)
                 {
                     this.tags[tagIdx] = newTagValue;
