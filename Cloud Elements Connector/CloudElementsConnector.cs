@@ -62,6 +62,20 @@ namespace Cloud_Elements_API
 
 
         #region "documents/files and folders"
+
+        /// <summary>
+        /// Retrieves the amount of storage available on your cloud service account
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CloudStorage> GetStorageAvailable()
+        {
+            CloudStorage Result;
+            HttpResponseMessage response = await APIExecuteGet("hubs/documents/storage");
+            Result = await response.Content.ReadAsAsync<CloudStorage>();
+            return Result;
+        }
+
+
         /// <summary>
         /// Retrieves specific metadata on a file or folder associated with an ID from your cloud service using its specified path. 
         /// </summary>
@@ -133,9 +147,23 @@ namespace Cloud_Elements_API
         #endregion
 
         #region "documents/folders/..."
-        public async Task<List<CloudFile>> ListFolderContents(string path, Boolean withTags)
+        public async Task<List<CloudFile>> ListFolderContents(FileSpecificationType fileSpecType, string path, bool withTags)
         {
-            HttpResponseMessage response = await APIExecuteGet(string.Format("hubs/documents/folders/contents?path={0}&fetchTags={1}", System.Net.WebUtility.UrlEncode(path), withTags));
+            HttpResponseMessage response;
+            string RequestURL;
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = "hubs/documents/folders/{0}/contents?&fetchTags={1}";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/folders/contents?path={0}&fetchTags={1}";
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
+            }
+
+            response = await APIExecuteGet(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(path), withTags));
             List<CloudFile> ResultList = await response.Content.ReadAsAsync<List<CloudFile>>();
             return ResultList;
         }
@@ -213,10 +241,66 @@ namespace Cloud_Elements_API
         #endregion
 
         #region "documents/files/..."
-        public async Task<CloudLink> FileLinks(string id)
+
+        /// <summary>
+        /// Deletes a specific file from your cloud service   
+        /// </summary>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <param name="emptyTrash">true also empties trash</param>
+        /// <returns></returns>
+        /// <remarks>Specifying a file associated with an ID that does not exist results in an error response.</remarks>
+        public async Task<bool> DeleteFile(FileSpecificationType fileSpecType, string identifier, bool emptyTrash)
         {
-            HttpResponseMessage response = await APIExecuteGet(string.Format("hubs/documents/files/{0}/links", System.Net.WebUtility.UrlEncode(id)));
-            CloudLink Result = await response.Content.ReadAsAsync<CloudLink>();
+            bool Result;
+            HttpResponseMessage response;
+            string RequestURL;
+             
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL ="hubs/documents/files/{0}?emptyTrash={1}";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/files?path={0}&emptyTrash={1}";
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
+            }
+
+            response = await APIExecuteDelete(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            Result = true;
+            return Result;
+        }
+
+
+
+
+        /// <summary>
+        /// Returns a link that can be used to download the specified file through Cloud Elements. The link can be used to download the file without providing credentials. 
+        /// </summary>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <returns></returns>
+        /// <remarks>Specifying a file that does not exist results in an error.</remarks>
+        public async Task<CloudLink> FileLinks(FileSpecificationType fileSpecType, string identifier)
+        {
+            CloudLink Result;
+            HttpResponseMessage response;
+            string RequestURL;
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = string.Format("hubs/documents/files/{0}/links", System.Net.WebUtility.UrlEncode(identifier));
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = string.Format("hubs/documents/files/links?path={0}", System.Net.WebUtility.UrlEncode(identifier));
+                    break;
+                default:
+                    throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
+            }
+            response = await APIExecuteGet(RequestURL);
+            Result = await response.Content.ReadAsAsync<CloudLink>();
             return Result;
         }
 
@@ -497,6 +581,13 @@ namespace Cloud_Elements_API
         public string cloudElementsLink; //  optional
         public string providerViewLink; //  optional
         public string providerLink; //  optional
+    }
+
+    public class CloudStorage
+    {
+        public Int64 shared; //  optional),
+        public Int64 total; //  optional),
+        public Int64 used; //  optional),
     }
 
     public class FileContent

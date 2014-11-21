@@ -82,7 +82,7 @@ namespace Cloud_Element_Test_Form
                 }
                 StatusMsg("Secrets needed: specify and APPLY authorization tokens");
             }
-            
+
 
         }
 
@@ -115,8 +115,15 @@ namespace Cloud_Element_Test_Form
             try
             {
                 Cloud_Elements_API.Pong PongResult = await APIConnector.Ping();
+                // here is one of the few example where we really go async within a single method...
+                Task<Cloud_Elements_API.CloudStorage> StorageTask = APIConnector.GetStorageAvailable();
                 StatusMsg(PongResult.ToString());
                 UpdateSecretsFile(PongResult.ToString());
+                Cloud_Elements_API.CloudStorage StorageResult = await StorageTask;
+                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.total),
+                    Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.shared),
+                    Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.used)));
+
                 result = true;
             }
             catch (Exception ex)
@@ -168,7 +175,7 @@ namespace Cloud_Element_Test_Form
             try
             {
                 StatusMsg(string.Format("Requesting [{0}]...", txtFolderPath.Text));
-                List<Cloud_Elements_API.CloudFile> Result = await APIConnector.ListFolderContents(txtFolderPath.Text, chkWithTags.Checked);
+                List<Cloud_Elements_API.CloudFile> Result = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, txtFolderPath.Text, chkWithTags.Checked);
                 cloudFileBindingSource.DataSource = Result;
                 if (FolderPathHistory.Count == 0 || (FolderPathHistory.Peek() != txtFolderPath.Text)) FolderPathHistory.Push(txtFolderPath.Text);
                 StatusMsg(string.Format("Found {0} - Right Click grid rows for options", Result.Count()));
@@ -231,11 +238,20 @@ namespace Cloud_Element_Test_Form
             tsGetThisFolder.Enabled = currentRow.directory;
             tsGetPriorFolder.Enabled = (FolderPathHistory.Count > 1);
 
-            tsDeleteFolderMenuItem.Enabled = currentRow.directory;
+            tsDeleteFolderMenuItem.Enabled = true;
             tsGetFileMenuItem.Enabled = !currentRow.directory;
+            if (currentRow.directory)
+            {
+                tsDeleteFolderMenuItem.Text = "Delete this folder...";
+            }
+            else tsDeleteFolderMenuItem.Text = "Delete this file...";
 
+            tsTxtObjectName.Text = currentRow.name;
             tsFileTagInfoMenuItem.Text = "Tags (not requested)";
             tsFileTagInfoMenuItem.Enabled = chkWithTags.Checked;
+
+
+
             if (tsFileTagInfoMenuItem.Enabled)
             {
                 tsFileTagInfoMenuItem.DropDownItems.Clear();
@@ -403,6 +419,7 @@ namespace Cloud_Element_Test_Form
 
         private async void deleteThisFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
+
             if (!HasGottenFolder()) return;
             try
             {
@@ -410,16 +427,32 @@ namespace Cloud_Element_Test_Form
 
                 if (!HasCurrentCloudFile(ref currentRow)) return;
 
-                if (currentRow.size > 0)
+                if (currentRow.directory)
                 {
-                    if (System.Windows.Forms.MessageBox.Show(string.Format("Folder is not empty!  Delete [{0}] anyway?", currentRow.path), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                    if (currentRow.size > 0)
                     {
-                        return;
+                        if (System.Windows.Forms.MessageBox.Show(string.Format("Folder is not empty!  Delete [{0}] anyway?", currentRow.path), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                        {
+                            return;
+                        }
                     }
-                }
 
-                StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                Cloud_Elements_API.CloudFile Result = await APIConnector.DeleteFolder(currentRow.path, false);
+                    StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                    Cloud_Elements_API.CloudFile Result = await APIConnector.DeleteFolder(currentRow.path, false);
+                }
+                else
+                {
+                    if (currentRow.size > 0)
+                    {
+                        if (System.Windows.Forms.MessageBox.Show(string.Format("File is not empty!  Delete [{0}] anyway?", currentRow.path), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                        {
+                            return;
+                        }
+                    }
+
+                    StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                    bool Result = await APIConnector.DeleteFile(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id, false);
+                }
 
                 StatusMsg("Done.");
                 await this.RefreshCurrentFolder();
@@ -462,6 +495,57 @@ namespace Cloud_Element_Test_Form
             await Cloud_Elements_API.TagOperations.SetTag(APIConnector, currentRow, TagToSet);
             if (!chkWithTags.Checked) chkWithTags.Checked = true;
             await RefreshCurrentFolder();
+        }
+
+        private async void tsGetFileLink_Click(object sender, EventArgs e)
+        {
+            if (!HasGottenFolder()) return;
+            Cloud_Elements_API.CloudFile currentRow = null;
+            if (!HasCurrentCloudFile(ref currentRow)) return;
+            if (currentRow.directory)
+            {
+                StatusMsg("API does not support a link to a folder");
+            }
+
+            Cloud_Elements_API.CloudLink Result = await APIConnector.FileLinks(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id);
+            StatusMsg(string.Format("ceLink: {0}", Result.cloudElementsLink));
+            StatusMsg(string.Format("Provider View Link: {0}", Result.providerViewLink));
+            StatusMsg(string.Format("Provider Link: {0}", Result.providerLink));
+
+            StatusMsg("See log for links...");
+        }
+
+
+        private async void RenameCurrentCloudFile()
+        {
+            if (!HasGottenFolder()) return;
+            Cloud_Elements_API.CloudFile currentRow = null;
+            if (!HasCurrentCloudFile(ref currentRow)) return;
+            if (currentRow.name == tsTxtObjectName.Text)
+            {
+                StatusMsg("Name not changed, ignored");
+            }
+            string oldName = currentRow.name;
+            Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType ceType = Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType.File;
+            if (currentRow.directory) ceType = Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType.Folder;
+            currentRow.path = txtFolderPath.Text + tsTxtObjectName.Text;
+            Cloud_Elements_API.CloudFile Result = await APIConnector.PatchDocEntryMetaData(ceType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id, currentRow);
+            StatusMsg(string.Format("Renamed [{0}] to {1}", oldName, Result.name));
+            RefreshCurrentFolder();
+        }
+
+        
+
+        private void tsTxtObjectName_Click(object sender, EventArgs e)
+        {
+            StatusMsg("Update name and press enter to rename...");
+        }
+
+        private void tsTxtObjectName_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r') {
+                RenameCurrentCloudFile();
+            }
         }
 
 

@@ -70,6 +70,7 @@
             this.tsGetThisFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetPriorFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsDeleteFolderMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsTxtObjectName = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsFileTagInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -458,13 +459,14 @@
             this.tsGetThisFolder,
             this.tsGetPriorFolder,
             this.tsDeleteFolderMenuItem,
+            this.tsTxtObjectName,
             this.toolStripSeparator1,
             this.tsFileTagInfoMenuItem,
             this.toolStripSeparator2,
             this.tsGetFileLink,
             this.tsGetFileMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(166, 148);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(166, 195);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
@@ -488,6 +490,14 @@
             this.tsDeleteFolderMenuItem.Text = "Delete this Folder";
             this.tsDeleteFolderMenuItem.Click += new System.EventHandler(this.deleteThisFolderToolStripMenuItem_Click);
             // 
+            // tsTxtObjectName
+            // 
+            this.tsTxtObjectName.Name = "tsTxtObjectName";
+            this.tsTxtObjectName.Size = new System.Drawing.Size(100, 23);
+            this.tsTxtObjectName.Tag = "Change name here";
+            this.tsTxtObjectName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tsTxtObjectName_KeyPress);
+            this.tsTxtObjectName.Click += new System.EventHandler(this.tsTxtObjectName_Click);
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -509,6 +519,7 @@
             this.tsGetFileLink.Name = "tsGetFileLink";
             this.tsGetFileLink.Size = new System.Drawing.Size(165, 22);
             this.tsGetFileLink.Text = "Get Link";
+            this.tsGetFileLink.Click += new System.EventHandler(this.tsGetFileLink_Click);
             // 
             // tsGetFileMenuItem
             // 
@@ -606,6 +617,7 @@
             this.tpContents.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgFolderContents)).EndInit();
             this.FolderRowContextMenu.ResumeLayout(false);
+            this.FolderRowContextMenu.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.tpLog.ResumeLayout(false);
             this.tpLog.PerformLayout();
@@ -669,6 +681,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripTextBox tstxtTagData;
+        private System.Windows.Forms.ToolStripTextBox tsTxtObjectName;
     }
 }
 
