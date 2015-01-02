@@ -68,6 +68,29 @@ namespace Cloud_Elements_API
             return stored;
         }
 
+
+        /// <summary>
+        /// Finds the KVP tag with the specified name and returns its value
+        /// </summary>
+        /// <param name="newTagValue"></param>
+        /// <returns>the tag value or nothing if the tag does not exist</returns>
+        public string GetTagValue(string tagName  )  
+        {
+            // 
+            bool isKVP = true;
+            string stored = null;
+
+            int tagIdx = FindTag(tagName, isKVP);
+            if (tagIdx >= 0)
+            {
+                stored = this.tags[tagIdx];
+                stored = stored.Substring(stored.IndexOf("=") + 1);
+            }
+
+            return stored;
+       
+        }
+
         /// <summary>
         /// Removes a tag to the tag collection; for a KVP tag, specify just name= 
         /// </summary>
