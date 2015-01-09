@@ -32,6 +32,40 @@ namespace Cloud_Elements_API
             }
         }
 
+        [Newtonsoft.Json.JsonIgnore]
+        public Boolean IsCreatedValid { get { checkDates(); return (_CreatedIsValid); } }
+        [Newtonsoft.Json.JsonIgnore]
+        public Boolean IsModifiedValid { get { checkDates(); return (_ModifiedIsValid); } }
+
+        private Boolean _CreatedIsValid;
+        private Boolean _ModifiedIsValid;
+        private Boolean _DatesChecked=false;
+        private DateTime _WhenCreated;
+        private DateTime _WhenModified;
+
+        private void checkDates()
+        {
+            if (_DatesChecked) return;
+            _CreatedIsValid = DateTime.TryParse(this.createdDate, out _WhenCreated);
+            _ModifiedIsValid = DateTime.TryParse(this.modifiedDate, out _WhenModified);
+            _DatesChecked = true;
+        }
+
+        public DateTime WhenCreated() 
+        {
+            checkDates();
+            if (!_CreatedIsValid) throw new ApplicationException("createdDate could not be converted to internal date time - " + this.createdDate);
+            return (_WhenCreated);
+        }
+
+        public DateTime WhenModified()
+        {
+            checkDates();
+            if (!_ModifiedIsValid) throw new ApplicationException("modifiedDate could not be converted to internal date time - " + this.modifiedDate);
+            return (_WhenModified);
+        }
+
+
         /// <summary>
         /// Adds a tag to the tag collection with support for Key-Value pair tags (name=value)
         /// </summary>
@@ -92,7 +126,7 @@ namespace Cloud_Elements_API
         }
 
         /// <summary>
-        /// Removes a tag to the tag collection; for a KVP tag, specify just name= 
+        /// Removes a tag from the tag collection; for a KVP tag, specify just name= 
         /// </summary>
         /// <param name="tagName"></param>
         /// <returns>true if the tag was removed</returns>

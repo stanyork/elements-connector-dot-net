@@ -531,7 +531,7 @@ namespace Cloud_Element_Test_Form
             currentRow.path = txtFolderPath.Text + tsTxtObjectName.Text;
             Cloud_Elements_API.CloudFile Result = await APIConnector.PatchDocEntryMetaData(ceType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id, currentRow);
             StatusMsg(string.Format("Renamed [{0}] to {1}", oldName, Result.name));
-            RefreshCurrentFolder();
+            Task refresh = RefreshCurrentFolder();
         }
 
         
