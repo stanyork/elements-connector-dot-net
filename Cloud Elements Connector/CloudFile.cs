@@ -11,7 +11,7 @@ namespace Cloud_Elements_API
         public string path { get; set; }
         public string[] tags { get; set; }          // optional
         public string createdDate { get; set; }     // optional
-        public int size { get; set; }               // optional
+        public UInt64 size { get; set; }            // optional
         public string name { get; set; }            // optional
         public string modifiedDate { get; set; }    // optional
         public string id { get; set; }              // optional

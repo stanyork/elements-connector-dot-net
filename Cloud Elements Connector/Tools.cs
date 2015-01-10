@@ -55,12 +55,19 @@ namespace Cloud_Elements_API
 
         }
 
+        public static string SizeInBytesToString(Int64 sizeInBytes)
+        {
+            return SizeInBytesToString((UInt64)sizeInBytes);
+        }
+
+
+
         /// <summary>
         /// Given a size in bytes, returns a string description with units in KB, MB, or GB
         /// </summary>
         /// <param name="sizeInBytes"></param>
         /// <returns></returns>
-        public static string SizeInBytesToString(long sizeInBytes)
+        public static string SizeInBytesToString(UInt64 sizeInBytes)
         {
             string result = string.Empty;
             if (sizeInBytes < 0)

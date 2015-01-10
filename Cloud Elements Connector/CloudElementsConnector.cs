@@ -587,7 +587,7 @@ namespace Cloud_Elements_API
     {
         public Int64 shared; //  optional),
         public Int64 total; //  optional),
-        public Int64 used; //  optional),
+        public Int64  used; //  optional),
     }
 
     public class FileContent

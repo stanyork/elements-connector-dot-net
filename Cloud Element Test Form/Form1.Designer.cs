@@ -33,7 +33,6 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.tsBtnGetSecrets = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.tsBtnPing = new System.Windows.Forms.ToolStripButton();
             this.tsBtnUpload = new System.Windows.Forms.ToolStripButton();
@@ -84,6 +83,13 @@
             this.txtLog = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.toolStripConnectionSecrets = new System.Windows.Forms.ToolStripDropDownButton();
+            this.saveCurrentSecretsAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadSecretsFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripTxtConnectionNow = new System.Windows.Forms.ToolStripTextBox();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -118,7 +124,7 @@
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsBtnGetSecrets,
+            this.toolStripConnectionSecrets,
             this.toolStripSeparator4,
             this.tsBtnPing,
             this.tsBtnUpload,
@@ -133,15 +139,6 @@
             this.toolStrip1.Size = new System.Drawing.Size(977, 31);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
-            // 
-            // tsBtnGetSecrets
-            // 
-            this.tsBtnGetSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsBtnGetSecrets.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnGetSecrets.Image")));
-            this.tsBtnGetSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnGetSecrets.Name = "tsBtnGetSecrets";
-            this.tsBtnGetSecrets.Size = new System.Drawing.Size(28, 28);
-            this.tsBtnGetSecrets.Text = "Load Secrets...";
             // 
             // toolStripSeparator4
             // 
@@ -466,7 +463,7 @@
             this.tsGetFileLink,
             this.tsGetFileMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(166, 195);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(166, 173);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
@@ -593,6 +590,59 @@
             this.openFileDialog1.RestoreDirectory = true;
             this.openFileDialog1.Title = "Select File to Upload to the Current Cloud Folder";
             // 
+            // toolStripConnectionSecrets
+            // 
+            this.toolStripConnectionSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripConnectionSecrets.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveCurrentSecretsAsToolStripMenuItem,
+            this.loadSecretsFromToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.toolStripTxtConnectionNow});
+            this.toolStripConnectionSecrets.Image = ((System.Drawing.Image)(resources.GetObject("toolStripConnectionSecrets.Image")));
+            this.toolStripConnectionSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripConnectionSecrets.Name = "toolStripConnectionSecrets";
+            this.toolStripConnectionSecrets.Size = new System.Drawing.Size(37, 28);
+            this.toolStripConnectionSecrets.Text = "toolStripDropDownButton1";
+            // 
+            // saveCurrentSecretsAsToolStripMenuItem
+            // 
+            this.saveCurrentSecretsAsToolStripMenuItem.Enabled = false;
+            this.saveCurrentSecretsAsToolStripMenuItem.Name = "saveCurrentSecretsAsToolStripMenuItem";
+            this.saveCurrentSecretsAsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.saveCurrentSecretsAsToolStripMenuItem.Text = "Save Current Secrets As...";
+            this.saveCurrentSecretsAsToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentSecretsAsToolStripMenuItem_Click);
+            // 
+            // loadSecretsFromToolStripMenuItem
+            // 
+            this.loadSecretsFromToolStripMenuItem.Name = "loadSecretsFromToolStripMenuItem";
+            this.loadSecretsFromToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.loadSecretsFromToolStripMenuItem.Text = "Load Secrets from...";
+            this.loadSecretsFromToolStripMenuItem.Click += new System.EventHandler(this.loadSecretsFromToolStripMenuItem_Click);
+            // 
+            // openSecretsFileDialog
+            // 
+            this.openSecretsFileDialog.DefaultExt = "json";
+            this.openSecretsFileDialog.FileName = "openFileDialog2";
+            this.openSecretsFileDialog.Filter = "JSON files|*.json";
+            this.openSecretsFileDialog.Title = "Open Stored Connection Secrets";
+            // 
+            // saveSecretsFileDialog1
+            // 
+            this.saveSecretsFileDialog1.DefaultExt = "json";
+            this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
+            this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(203, 6);
+            // 
+            // toolStripTxtConnectionNow
+            // 
+            this.toolStripTxtConnectionNow.Name = "toolStripTxtConnectionNow";
+            this.toolStripTxtConnectionNow.ReadOnly = true;
+            this.toolStripTxtConnectionNow.Size = new System.Drawing.Size(100, 23);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -675,13 +725,19 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn pathDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn idDataGridViewTextBoxColumn;
         private System.Windows.Forms.Button btnGetPriorFolder;
-        private System.Windows.Forms.ToolStripButton tsBtnGetSecrets;
         private System.Windows.Forms.TextBox txtLog;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
         private System.Windows.Forms.ToolStripTextBox tstxtTagData;
         private System.Windows.Forms.ToolStripTextBox tsTxtObjectName;
+        private System.Windows.Forms.ToolStripDropDownButton toolStripConnectionSecrets;
+        private System.Windows.Forms.ToolStripMenuItem saveCurrentSecretsAsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadSecretsFromToolStripMenuItem;
+        private System.Windows.Forms.OpenFileDialog openSecretsFileDialog;
+        private System.Windows.Forms.SaveFileDialog saveSecretsFileDialog1;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripTextBox toolStripTxtConnectionNow;
     }
 }
 

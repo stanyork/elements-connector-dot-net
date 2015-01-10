@@ -59,19 +59,15 @@ namespace Cloud_Element_Test_Form
 
 
         private string DefaultSecretsFN;
-        private async void Form1_Load(object sender, EventArgs e)
+        private   void Form1_Load(object sender, EventArgs e)
         {
             txtWorkFolder.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\";
             if (!System.IO.Directory.Exists(txtWorkFolder.Text)) System.IO.Directory.CreateDirectory(txtWorkFolder.Text);
             DefaultSecretsFN = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\Default Secrets.json";
             if (System.IO.File.Exists(DefaultSecretsFN))
             {
-                APIAuthorization = new Cloud_Elements_API.CloudAuthorization(Cloud_Elements_API.Tools.FileToString(DefaultSecretsFN));
-                StatusMsg("Loaded secrets from " + DefaultSecretsFN);
-                this.Show();
-                await PingService();
-                Task ignoredRefreshFolderTask = RefreshCurrentFolder(); // very naughty, ignore exceptions; ref http://stackoverflow.com/questions/14903887/warning-this-call-is-not-awaited-execution-of-the-current-method-continues
-            }
+                 LoadSecretsFromFile(DefaultSecretsFN);
+             }
             else
             {
                 if (System.Windows.Forms.MessageBox.Show(string.Format("Stored Secrets not found - {0}\n\nYou will have to enter element and user secrets on the form.\n\nContinue?", DefaultSecretsFN), "Notification", System.Windows.Forms.MessageBoxButtons.YesNo) != System.Windows.Forms.DialogResult.Yes)
@@ -86,11 +82,21 @@ namespace Cloud_Element_Test_Form
 
         }
 
+        private async void LoadSecretsFromFile(string secretsFN)
+        {
+            APIAuthorization = new Cloud_Elements_API.CloudAuthorization(Cloud_Elements_API.Tools.FileToString(secretsFN));
+            StatusMsg("Loaded secrets from " + secretsFN);
+            this.Show();
+            await PingService();
+            Task ignoredRefreshFolderTask = RefreshCurrentFolder(); // very naughty, ignore exceptions; ref http://stackoverflow.com/questions/14903887/warning-this-call-is-not-awaited-execution-of-the-current-method-continues
+        }
+
         private void UIState(Boolean APIIsConnected)
         {
             tsBtnPing.Enabled = APIIsConnected;
             tsBtnNewFolder.Enabled = APIIsConnected && (tsTxtFolderName.Text.Length > 0);
             tsBtnUpload.Enabled = APIIsConnected;
+            saveCurrentSecretsAsToolStripMenuItem.Enabled = APIIsConnected;
             cmdGetFolderContents.Enabled = APIIsConnected;
 
             if (APIIsConnected) tabControl1.SelectedTab = tpContents;
@@ -119,8 +125,9 @@ namespace Cloud_Element_Test_Form
                 Task<Cloud_Elements_API.CloudStorage> StorageTask = APIConnector.GetStorageAvailable();
                 StatusMsg(PongResult.ToString());
                 UpdateSecretsFile(PongResult.ToString());
+                toolStripTxtConnectionNow.Text = PongResult.endpoint;
                 Cloud_Elements_API.CloudStorage StorageResult = await StorageTask;
-                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.total),
+                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(  StorageResult.total),
                     Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.shared),
                     Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.used)));
 
@@ -545,6 +552,31 @@ namespace Cloud_Element_Test_Form
         {
             if (e.KeyChar == '\r') {
                 RenameCurrentCloudFile();
+            }
+        }
+
+      
+
+        private void saveCurrentSecretsAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveSecretsFileDialog1.InitialDirectory = txtWorkFolder.Text;
+            saveSecretsFileDialog1.FileName = "Secrets - " + toolStripTxtConnectionNow.Text;
+            if (saveSecretsFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Cloud_Elements_API.Tools.StringToFile(APIAuthorization.ToJSonString(toolStripTxtConnectionNow.Text), saveSecretsFileDialog1.FileName);
+
+            }
+
+        }
+
+        private void loadSecretsFromToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openSecretsFileDialog.InitialDirectory = txtWorkFolder.Text;
+            openSecretsFileDialog.FileName = "";
+            if (openSecretsFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                LoadSecretsFromFile(openSecretsFileDialog.FileName);
+
             }
         }
 
