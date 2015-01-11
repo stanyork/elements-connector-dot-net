@@ -51,6 +51,18 @@ namespace Cloud_Elements_API
             APIClient = NewHttpClient();
             ++ConnectorInstanceCounter;
         }
+
+        /// <summary>
+        /// Returns another APIConnector with the same authorization 
+        /// </summary>
+        /// <returns></returns>
+        public CloudElementsConnector Clone()
+        {
+            CloudElementsConnector result = new CloudElementsConnector( );
+            result.ElementsPublicUrl = this.ElementsPublicUrl;
+            result.APIAuthorization = this.AuthorizationData;
+            return result;
+        }
         #endregion
 
         public async Task<Pong> Ping()
