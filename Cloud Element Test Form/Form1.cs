@@ -52,6 +52,22 @@ namespace Cloud_Element_Test_Form
             statusStrip1.Update();
         }
 
+        public delegate void TestMsgDelegate(string msg);
+        private void TestStatusMsg(string info)
+        {
+            if (InvokeRequired)
+            {
+                this.Invoke(new TestMsgDelegate(TestStatusMsg), new object[] { info });
+                return;
+            }
+            if (tbTestOutput.Text.Length > 64000)
+            {
+                tbTestOutput.Text = tbTestOutput.Text.Substring(32000);
+            }
+            tbTestOutput.Text += string.Format("{0}: {1}\r\n", Cloud_Elements_API.Tools.TraceTimeNow(), info);
+            
+        }
+
         private void HandleDiagEvent(object sender, string info)
         {
             StatusMsg(info);
@@ -340,7 +356,7 @@ namespace Cloud_Element_Test_Form
                 if (System.IO.File.Exists(fn))
                 {
                     // HINT: would be better to check this before downloading...but we are using the response disposition to illustrate its existence....
-                    if (System.Windows.Forms.MessageBox.Show(string.Format("Downdload will replace existing file {0}\n\nOkay?", fn), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
+                    if (System.Windows.Forms.MessageBox.Show(string.Format("Download will replace existing file {0}\n\nOkay?", fn), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.No)
                     {
                         Result.ContentStream.Close();
                         return;
@@ -580,8 +596,34 @@ namespace Cloud_Element_Test_Form
             }
         }
 
+        private async void cmdTestButton_Click(object sender, EventArgs e)
+        {
+          Task UnitTestTask = RunUnitTest();
+          cmdTestButton.Enabled = false;
+          await UnitTestTask;
 
+          Boolean broken =  UnitTestTask.IsFaulted;
 
+          if (!broken)
+          {
+              if (chkTestCleanup.Checked == true)
+              {
+                  Task UnitTestClean = CleanupUnitTest();
+                  await UnitTestClean;
+
+                 
+
+              }
+          }
+          cmdTestButton.Enabled = true;
+        }
+
+        private void cmdTestClearLog_Click(object sender, EventArgs e)
+        {
+            tbTestOutput.Text = "";
+        }
+
+  
 
 
 

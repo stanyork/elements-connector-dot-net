@@ -33,6 +33,11 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripConnectionSecrets = new System.Windows.Forms.ToolStripDropDownButton();
+            this.saveCurrentSecretsAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadSecretsFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripTxtConnectionNow = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.tsBtnPing = new System.Windows.Forms.ToolStripButton();
             this.tsBtnUpload = new System.Windows.Forms.ToolStripButton();
@@ -83,13 +88,13 @@
             this.txtLog = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.toolStripConnectionSecrets = new System.Windows.Forms.ToolStripDropDownButton();
-            this.saveCurrentSecretsAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadSecretsFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripTxtConnectionNow = new System.Windows.Forms.ToolStripTextBox();
+            this.tpTest = new System.Windows.Forms.TabPage();
+            this.cmdTestButton = new System.Windows.Forms.Button();
+            this.tbTestOutput = new System.Windows.Forms.TextBox();
+            this.chkTestCleanup = new System.Windows.Forms.CheckBox();
+            this.cmdTestClearLog = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -100,6 +105,7 @@
             this.FolderRowContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.tpLog.SuspendLayout();
+            this.tpTest.SuspendLayout();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -139,6 +145,46 @@
             this.toolStrip1.Size = new System.Drawing.Size(977, 31);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // toolStripConnectionSecrets
+            // 
+            this.toolStripConnectionSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripConnectionSecrets.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveCurrentSecretsAsToolStripMenuItem,
+            this.loadSecretsFromToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.toolStripTxtConnectionNow});
+            this.toolStripConnectionSecrets.Image = ((System.Drawing.Image)(resources.GetObject("toolStripConnectionSecrets.Image")));
+            this.toolStripConnectionSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripConnectionSecrets.Name = "toolStripConnectionSecrets";
+            this.toolStripConnectionSecrets.Size = new System.Drawing.Size(37, 28);
+            this.toolStripConnectionSecrets.Text = "toolStripDropDownButton1";
+            // 
+            // saveCurrentSecretsAsToolStripMenuItem
+            // 
+            this.saveCurrentSecretsAsToolStripMenuItem.Enabled = false;
+            this.saveCurrentSecretsAsToolStripMenuItem.Name = "saveCurrentSecretsAsToolStripMenuItem";
+            this.saveCurrentSecretsAsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.saveCurrentSecretsAsToolStripMenuItem.Text = "Save Current Secrets As...";
+            this.saveCurrentSecretsAsToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentSecretsAsToolStripMenuItem_Click);
+            // 
+            // loadSecretsFromToolStripMenuItem
+            // 
+            this.loadSecretsFromToolStripMenuItem.Name = "loadSecretsFromToolStripMenuItem";
+            this.loadSecretsFromToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.loadSecretsFromToolStripMenuItem.Text = "Load Secrets from...";
+            this.loadSecretsFromToolStripMenuItem.Click += new System.EventHandler(this.loadSecretsFromToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(203, 6);
+            // 
+            // toolStripTxtConnectionNow
+            // 
+            this.toolStripTxtConnectionNow.Name = "toolStripTxtConnectionNow";
+            this.toolStripTxtConnectionNow.ReadOnly = true;
+            this.toolStripTxtConnectionNow.Size = new System.Drawing.Size(100, 23);
             // 
             // toolStripSeparator4
             // 
@@ -218,6 +264,7 @@
             this.tabControl1.Controls.Add(this.tpAuthorize);
             this.tabControl1.Controls.Add(this.tpContents);
             this.tabControl1.Controls.Add(this.tpLog);
+            this.tabControl1.Controls.Add(this.tpTest);
             this.tabControl1.Location = new System.Drawing.Point(13, 28);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -396,7 +443,7 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 60;
+            this.Column1.Width = 58;
             // 
             // sizeDataGridViewTextBoxColumn
             // 
@@ -424,7 +471,7 @@
             this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
             this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
             this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 42;
+            this.directoryDataGridViewCheckBoxColumn.Width = 40;
             // 
             // HasTags
             // 
@@ -440,7 +487,7 @@
             this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
             this.pathDataGridViewTextBoxColumn.HeaderText = "path";
             this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 53;
+            this.pathDataGridViewTextBoxColumn.Width = 51;
             // 
             // idDataGridViewTextBoxColumn
             // 
@@ -590,35 +637,6 @@
             this.openFileDialog1.RestoreDirectory = true;
             this.openFileDialog1.Title = "Select File to Upload to the Current Cloud Folder";
             // 
-            // toolStripConnectionSecrets
-            // 
-            this.toolStripConnectionSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripConnectionSecrets.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.saveCurrentSecretsAsToolStripMenuItem,
-            this.loadSecretsFromToolStripMenuItem,
-            this.toolStripMenuItem1,
-            this.toolStripTxtConnectionNow});
-            this.toolStripConnectionSecrets.Image = ((System.Drawing.Image)(resources.GetObject("toolStripConnectionSecrets.Image")));
-            this.toolStripConnectionSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripConnectionSecrets.Name = "toolStripConnectionSecrets";
-            this.toolStripConnectionSecrets.Size = new System.Drawing.Size(37, 28);
-            this.toolStripConnectionSecrets.Text = "toolStripDropDownButton1";
-            // 
-            // saveCurrentSecretsAsToolStripMenuItem
-            // 
-            this.saveCurrentSecretsAsToolStripMenuItem.Enabled = false;
-            this.saveCurrentSecretsAsToolStripMenuItem.Name = "saveCurrentSecretsAsToolStripMenuItem";
-            this.saveCurrentSecretsAsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.saveCurrentSecretsAsToolStripMenuItem.Text = "Save Current Secrets As...";
-            this.saveCurrentSecretsAsToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentSecretsAsToolStripMenuItem_Click);
-            // 
-            // loadSecretsFromToolStripMenuItem
-            // 
-            this.loadSecretsFromToolStripMenuItem.Name = "loadSecretsFromToolStripMenuItem";
-            this.loadSecretsFromToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.loadSecretsFromToolStripMenuItem.Text = "Load Secrets from...";
-            this.loadSecretsFromToolStripMenuItem.Click += new System.EventHandler(this.loadSecretsFromToolStripMenuItem_Click);
-            // 
             // openSecretsFileDialog
             // 
             this.openSecretsFileDialog.DefaultExt = "json";
@@ -632,16 +650,61 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // toolStripMenuItem1
+            // tpTest
             // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(203, 6);
+            this.tpTest.Controls.Add(this.cmdTestClearLog);
+            this.tpTest.Controls.Add(this.chkTestCleanup);
+            this.tpTest.Controls.Add(this.tbTestOutput);
+            this.tpTest.Controls.Add(this.cmdTestButton);
+            this.tpTest.Location = new System.Drawing.Point(4, 22);
+            this.tpTest.Name = "tpTest";
+            this.tpTest.Padding = new System.Windows.Forms.Padding(3);
+            this.tpTest.Size = new System.Drawing.Size(944, 338);
+            this.tpTest.TabIndex = 3;
+            this.tpTest.Text = "Test";
+            this.tpTest.UseVisualStyleBackColor = true;
             // 
-            // toolStripTxtConnectionNow
+            // cmdTestButton
             // 
-            this.toolStripTxtConnectionNow.Name = "toolStripTxtConnectionNow";
-            this.toolStripTxtConnectionNow.ReadOnly = true;
-            this.toolStripTxtConnectionNow.Size = new System.Drawing.Size(100, 23);
+            this.cmdTestButton.Location = new System.Drawing.Point(94, 29);
+            this.cmdTestButton.Name = "cmdTestButton";
+            this.cmdTestButton.Size = new System.Drawing.Size(117, 23);
+            this.cmdTestButton.TabIndex = 0;
+            this.cmdTestButton.Text = "Test Functions";
+            this.cmdTestButton.UseVisualStyleBackColor = true;
+            this.cmdTestButton.Click += new System.EventHandler(this.cmdTestButton_Click);
+            // 
+            // tbTestOutput
+            // 
+            this.tbTestOutput.Location = new System.Drawing.Point(94, 58);
+            this.tbTestOutput.Multiline = true;
+            this.tbTestOutput.Name = "tbTestOutput";
+            this.tbTestOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbTestOutput.Size = new System.Drawing.Size(574, 238);
+            this.tbTestOutput.TabIndex = 1;
+            // 
+            // chkTestCleanup
+            // 
+            this.chkTestCleanup.AutoSize = true;
+            this.chkTestCleanup.Checked = true;
+            this.chkTestCleanup.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkTestCleanup.Location = new System.Drawing.Point(217, 33);
+            this.chkTestCleanup.Name = "chkTestCleanup";
+            this.chkTestCleanup.Size = new System.Drawing.Size(216, 17);
+            this.chkTestCleanup.TabIndex = 2;
+            this.chkTestCleanup.Tag = "chkTestCleanup";
+            this.chkTestCleanup.Text = "Automatically delete test folders and files";
+            this.chkTestCleanup.UseVisualStyleBackColor = true;
+            // 
+            // cmdTestClearLog
+            // 
+            this.cmdTestClearLog.Location = new System.Drawing.Point(94, 302);
+            this.cmdTestClearLog.Name = "cmdTestClearLog";
+            this.cmdTestClearLog.Size = new System.Drawing.Size(75, 23);
+            this.cmdTestClearLog.TabIndex = 3;
+            this.cmdTestClearLog.Text = "Clear Log";
+            this.cmdTestClearLog.UseVisualStyleBackColor = true;
+            this.cmdTestClearLog.Click += new System.EventHandler(this.cmdTestClearLog_Click);
             // 
             // Form1
             // 
@@ -671,6 +734,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.tpLog.ResumeLayout(false);
             this.tpLog.PerformLayout();
+            this.tpTest.ResumeLayout(false);
+            this.tpTest.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -738,6 +803,11 @@
         private System.Windows.Forms.SaveFileDialog saveSecretsFileDialog1;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripTextBox toolStripTxtConnectionNow;
+        private System.Windows.Forms.TabPage tpTest;
+        private System.Windows.Forms.TextBox tbTestOutput;
+        private System.Windows.Forms.Button cmdTestButton;
+        private System.Windows.Forms.CheckBox chkTestCleanup;
+        private System.Windows.Forms.Button cmdTestClearLog;
     }
 }
 

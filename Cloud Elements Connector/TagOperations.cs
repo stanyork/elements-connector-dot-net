@@ -80,7 +80,10 @@ namespace Cloud_Elements_API
                     deType = CloudElementsConnector.DirectoryEntryType.Folder;
                     throw new ArgumentException("CloudFile must point to a file; folders do not support tags");
                 }
-                fileData = await connector.PatchDocEntryMetaData(deType, CloudElementsConnector.FileSpecificationType.ID, fileData.id, fileData);
+                CloudFile PatchData = new CloudFile();
+                PatchData.id = fileData.id;
+                PatchData.tags = fileData.tags;
+                fileData = await connector.PatchDocEntryMetaData(deType, CloudElementsConnector.FileSpecificationType.ID, fileData.id, PatchData);
             }
             return fileData;
         }
