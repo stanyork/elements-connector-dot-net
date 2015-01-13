@@ -51,6 +51,7 @@
     <Compile Include="CloudAuthorization.cs" />
     <Compile Include="CloudElementsConnector.cs" />
     <Compile Include="CloudFile.cs" />
+    <Compile Include="FileOperations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TagOperations.cs" />
     <Compile Include="Tools.cs" />

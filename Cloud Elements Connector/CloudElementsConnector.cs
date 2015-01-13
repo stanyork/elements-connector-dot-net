@@ -180,6 +180,48 @@ namespace Cloud_Elements_API
             return ResultList;
         }
 
+        public async Task<CloudFile> Copy(CloudFile sourceFile , string identifier, string targetPath)
+        {
+            return await Copy(sourceFile.EntryType, FileSpecificationType.ID, sourceFile.id, targetPath);
+        }
+
+        /// <summary>
+        /// Copies a file or folder to the specified target
+        /// </summary>
+        /// <param name="entryType"></param>
+        /// <param name="fileSpecType"></param>
+        /// <param name="identifier"></param>
+        /// <param name="targetPath"></param>
+        /// <returns></returns>
+        public async Task<CloudFile> Copy(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier, string targetPath )
+        {
+
+            HttpResponseMessage response;
+            string RequestURL;
+            string URLEntryType = "files";
+            if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = "hubs/documents/{1}/{0}/copy";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/{1}/copy?path={0}";
+                    break;
+                default:
+                    throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
+            }
+
+            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            CloudFile fileData = new CloudFile();
+            fileData.path = targetPath;
+            var content = CloudFileRequestContent(fileData);
+            response = await APIExecutePost(RequestURL, content);
+            fileData = await response.Content.ReadAsAsync<CloudFile>();
+            return fileData;
+        }
+
+
         /// <summary>
         /// Creates a folder
         /// </summary>
