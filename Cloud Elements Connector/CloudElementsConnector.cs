@@ -24,6 +24,7 @@ namespace Cloud_Elements_API
         #endregion
 
         public static bool WriteDiagTrace = true;
+        public static TraceLevel DiagOutputLevel = TraceLevel.NonSuccess;
         public delegate void DiagTraceEventHanlder(object sender, string info);
         public event DiagTraceEventHanlder DiagTrace;
 
@@ -558,6 +559,14 @@ namespace Cloud_Elements_API
             File
         }
 
+
+        public enum TraceLevel
+        {
+            NonSuccess,
+            All,
+             Verbose
+        }
+
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI)
         {
             return await APIExecuteVerb(verb, URI, null);
@@ -593,8 +602,10 @@ namespace Cloud_Elements_API
             response = await HttpRequestTask;
             double msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
             TotalRequestMS += msUsed;
-            string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URI, response.StatusCode, msUsed / 1000.0);
-            OnDiagTrace(traceInfo);
+            if ((response.StatusCode != System.Net.HttpStatusCode.OK) || (DiagOutputLevel > TraceLevel.NonSuccess )) {
+                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URI, response.StatusCode, msUsed / 1000.0);
+                OnDiagTrace(traceInfo);
+            }
             response.EnsureSuccessStatusCode();
             return response;
         }
