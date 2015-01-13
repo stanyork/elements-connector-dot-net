@@ -10,7 +10,7 @@ namespace Cloud_Elements_API
     {
 
         /// <summary>
-        /// Changes the name of a file 
+        /// Copies a file (or folder)
         /// </summary>
         /// <param name="connector">The API connector instance</param>
         /// <param name="fileData">Cloud File Data</param>
@@ -54,13 +54,13 @@ namespace Cloud_Elements_API
 
 
         /// <summary>
-        /// Changes the name of a file 
+        /// Moves (and/or renames) a file (or folder)
         /// </summary>
         /// <param name="connector">The API connector instance</param>
-        /// <param name="fileData">Cloud File Data</param>
+        /// <param name="fileData">file object</param>
         /// <param name="newPath">new path</param>
-        /// <returns>Update CloudFile</returns>
-        public static async Task<CloudFile> MoveFile(CloudElementsConnector connector, CloudFile sourceFile, string newPath)
+        /// <returns>Updated CloudFile</returns>
+        public static async Task<CloudFile> Move(CloudElementsConnector connector, CloudFile sourceFile, string newPath)
         {
 
             CloudElementsConnector.DirectoryEntryType deType = sourceFile.EntryType;
@@ -74,13 +74,13 @@ namespace Cloud_Elements_API
         }
 
         /// <summary>
-        /// Changes the name of a file 
+        /// Changes the name of a file (or folder)
         /// </summary>
         /// <param name="connector">The API connector instance</param>
         /// <param name="fileData">Cloud File Data</param>
         /// <param name="newFilename">new name</param>
-        /// <returns>Update CloudFile</returns>
-        public static async Task<CloudFile> RenameFile(CloudElementsConnector connector, CloudFile targetFile, string newFilename)
+        /// <returns>Updated CloudFile</returns>
+        public static async Task<CloudFile> Rename(CloudElementsConnector connector, CloudFile targetFile, string newFilename)
         {
             if (newFilename.IndexOf("/") >= 0) throw new ArgumentException("newFilename cannot include path information");
             CloudElementsConnector.DirectoryEntryType deType = targetFile.EntryType;
