@@ -88,5 +88,51 @@ namespace Cloud_Elements_API
             return fileData;
         }
 
+        /// <summary>
+        /// Removes tags and stores if necessary 
+        /// </summary>
+        /// <param name="connector">The API connector instance</param>
+        /// <param name="fileData">Cloud File Data, including current tags (if any)</param>
+        /// <param name="tagValue">tag to be removed</param>
+        /// <returns>Update CloudFile</returns>
+        public static async Task<CloudFile> DeleteTag(CloudElementsConnector connector, CloudFile fileData, string tagValue)
+        {
+            List<string> tagValues = new List<string>();
+            tagValues.Add(tagValue);
+            fileData = await DeleteTag(connector, fileData, tagValues);
+            return fileData;
+        }
+
+        /// <summary>
+        /// Removes a tag and updates if necessary
+        /// </summary>
+        /// <param name="connector">The API connector instance</param>
+        /// <param name="fileData">Cloud File Data, including current tags (if any)</param>
+        /// <param name="tagValues">list of tags to be removed</param>
+        /// <returns>Update CloudFile</returns>
+        public static async Task<CloudFile> DeleteTag(CloudElementsConnector connector, CloudFile fileData, List<string> tagValues)
+        {
+            bool mustStore = false;
+            foreach (var tagItem in tagValues)
+            {
+                if (fileData.RemoveTag(tagItem)) if (!mustStore) mustStore = true;
+            }
+
+            if (mustStore)
+            {
+                // store
+                CloudElementsConnector.DirectoryEntryType deType = CloudElementsConnector.DirectoryEntryType.File;
+                if (fileData.directory)
+                {
+                    deType = CloudElementsConnector.DirectoryEntryType.Folder;
+                    throw new ArgumentException("CloudFile must point to a file; folders do not support tags");
+                }
+                CloudFile PatchData = new CloudFile();
+                PatchData.id = fileData.id;
+                PatchData.tags = fileData.tags;
+                fileData = await connector.PatchDocEntryMetaData(deType, CloudElementsConnector.FileSpecificationType.ID, fileData.id, PatchData);
+            }
+            return fileData;
+        }
     }
 }

@@ -602,8 +602,17 @@ namespace Cloud_Elements_API
             response = await HttpRequestTask;
             double msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
             TotalRequestMS += msUsed;
-            if ((response.StatusCode != System.Net.HttpStatusCode.OK) || (DiagOutputLevel > TraceLevel.NonSuccess )) {
+            if ((!response.IsSuccessStatusCode ) || (DiagOutputLevel > TraceLevel.NonSuccess )) { 
                 string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URI, response.StatusCode, msUsed / 1000.0);
+                if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
+                {
+                    Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
+                    if (info != null) {
+                        Newtonsoft.Json.Linq.JToken msgtoken = info.GetValue("message");
+                        if (msgtoken != null)
+                        {  traceInfo = traceInfo + " " + msgtoken.ToString(); }
+                                      }
+                }                
                 OnDiagTrace(traceInfo);
             }
             response.EnsureSuccessStatusCode();
