@@ -71,6 +71,7 @@ namespace Cloud_Element_Test_Form
         private void HandleDiagEvent(object sender, string info)
         {
             StatusMsg(info);
+            if (!cmdTestButton.Enabled) TestStatusMsg(info);
         }
 
 
@@ -575,7 +576,7 @@ namespace Cloud_Element_Test_Form
 
         private void saveCurrentSecretsAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            saveSecretsFileDialog1.InitialDirectory = txtWorkFolder.Text;
+            saveSecretsFileDialog1.InitialDirectory = WorkPath;
             saveSecretsFileDialog1.FileName = "Secrets - " + toolStripTxtConnectionNow.Text;
             if (saveSecretsFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -587,7 +588,7 @@ namespace Cloud_Element_Test_Form
 
         private void loadSecretsFromToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openSecretsFileDialog.InitialDirectory = txtWorkFolder.Text;
+            openSecretsFileDialog.InitialDirectory = WorkPath;
             openSecretsFileDialog.FileName = "";
             if (openSecretsFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -610,10 +611,15 @@ namespace Cloud_Element_Test_Form
               {
                   Task UnitTestClean = CleanupUnitTest();
                   await UnitTestClean;
-
-                 
-
               }
+          }
+
+          TestStatusMsg("Summary: " + APIConnector.GetStatisticsSummary());
+
+          if (chkAutoSaveLog.Checked)
+          {
+              string fn = System.IO.Path.Combine(WorkPath, "Test Log for " + toolStripTxtConnectionNow.Text) + ".log" ;
+              Cloud_Elements_API.Tools.StringToFile(tbTestOutput.Text,fn );
           }
           cmdTestButton.Enabled = true;
         }
@@ -622,12 +628,6 @@ namespace Cloud_Element_Test_Form
         {
             tbTestOutput.Text = "";
         }
-
-  
-
-
-
-
 
 
     }

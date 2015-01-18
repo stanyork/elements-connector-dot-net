@@ -88,6 +88,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
             this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.createdDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.modifiedDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -443,7 +444,7 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 58;
+            this.Column1.Width = 60;
             // 
             // HasTags
             // 
@@ -579,6 +580,7 @@
             // 
             // tpTest
             // 
+            this.tpTest.Controls.Add(this.chkAutoSaveLog);
             this.tpTest.Controls.Add(this.cmdTestClearLog);
             this.tpTest.Controls.Add(this.chkTestCleanup);
             this.tpTest.Controls.Add(this.tbTestOutput);
@@ -616,6 +618,9 @@
             // 
             // tbTestOutput
             // 
+            this.tbTestOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbTestOutput.Location = new System.Drawing.Point(20, 58);
             this.tbTestOutput.Multiline = true;
             this.tbTestOutput.Name = "tbTestOutput";
@@ -656,6 +661,19 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
+            // chkAutoSaveLog
+            // 
+            this.chkAutoSaveLog.AutoSize = true;
+            this.chkAutoSaveLog.Checked = true;
+            this.chkAutoSaveLog.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkAutoSaveLog.Location = new System.Drawing.Point(450, 33);
+            this.chkAutoSaveLog.Name = "chkAutoSaveLog";
+            this.chkAutoSaveLog.Size = new System.Drawing.Size(231, 17);
+            this.chkAutoSaveLog.TabIndex = 4;
+            this.chkAutoSaveLog.Tag = "chkTestCleanup";
+            this.chkAutoSaveLog.Text = "Automatically save log (overwrites previous)";
+            this.chkAutoSaveLog.UseVisualStyleBackColor = true;
+            // 
             // sizeDataGridViewTextBoxColumn
             // 
             this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
@@ -682,7 +700,7 @@
             this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
             this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
             this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 40;
+            this.directoryDataGridViewCheckBoxColumn.Width = 42;
             // 
             // pathDataGridViewTextBoxColumn
             // 
@@ -691,7 +709,7 @@
             this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
             this.pathDataGridViewTextBoxColumn.HeaderText = "path";
             this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 51;
+            this.pathDataGridViewTextBoxColumn.Width = 53;
             // 
             // idDataGridViewTextBoxColumn
             // 
@@ -808,6 +826,7 @@
         private System.Windows.Forms.Button cmdTestButton;
         private System.Windows.Forms.CheckBox chkTestCleanup;
         private System.Windows.Forms.Button cmdTestClearLog;
+        private System.Windows.Forms.CheckBox chkAutoSaveLog;
     }
 }
 

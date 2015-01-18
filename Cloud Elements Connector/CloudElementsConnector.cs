@@ -13,17 +13,26 @@ namespace Cloud_Elements_API
     {
         #region "privates"
         static readonly string DefaultElementsPublicURL = "https://api.cloud-elements.com/elements/api-v2/";
+        private readonly static string StaticLockObject = "";
+        // note: InstanceLockObject is APIClient;
         private static int ConnectorInstanceCounter = 0;
         private static int HttpClientInstanceCounter = 0;
         private static int RequestCounter = 0;
         private static double TotalRequestMS = 0d;
+        private int ConnectorInstanceNumber = 0;
+        private int InstanceRequestCounter = 0;
+        private double InstanceTotalRequestMS = 0d;
+
         // ...hubs/documents/folders/contents?path=%2FSQL&fetchTags=true"
         // ...hubs/documents/files/21794645297/metadata
         private Cloud_Elements_API.CloudAuthorization AuthorizationData;
         private HttpClient APIClient;
+        private DateTime InstanceCreated;
+        private string LastFailureInformation = "";
         #endregion
 
         public static bool WriteDiagTrace = true;
+        public static bool SimplifyLoggedURIs = true;
         public static TraceLevel DiagOutputLevel = TraceLevel.NonSuccess;
         public delegate void DiagTraceEventHanlder(object sender, string info);
         public event DiagTraceEventHanlder DiagTrace;
@@ -34,7 +43,11 @@ namespace Cloud_Elements_API
             set
             {
                 AuthorizationData = value;
-                APIClient.DefaultRequestHeaders.Authorization = AuthorizationData.GetHeaderValue();
+                if (value == null)
+                {
+                    APIClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("basic", "empty");
+                }
+                else APIClient.DefaultRequestHeaders.Authorization = AuthorizationData.GetHeaderValue();
             }
         }
 
@@ -48,20 +61,26 @@ namespace Cloud_Elements_API
 
         public CloudElementsConnector()
         {
+            InstanceCreated = DateTime.Now;
             ElementsPublicUrl = DefaultElementsPublicURL;
             APIClient = NewHttpClient();
-            ++ConnectorInstanceCounter;
+            
+            lock (StaticLockObject) {
+                ++ConnectorInstanceCounter;
+                ConnectorInstanceNumber = ConnectorInstanceCounter;
+            }
         }
 
         /// <summary>
-        /// Returns another APIConnector with the same authorization 
+        /// Returns another APIConnector with the same authorization and trace handler
         /// </summary>
         /// <returns></returns>
         public CloudElementsConnector Clone()
         {
-            CloudElementsConnector result = new CloudElementsConnector( );
+            CloudElementsConnector result = new CloudElementsConnector();
             result.ElementsPublicUrl = this.ElementsPublicUrl;
             result.APIAuthorization = this.AuthorizationData;
+            result.DiagTrace = this.DiagTrace;
             return result;
         }
         #endregion
@@ -73,6 +92,46 @@ namespace Cloud_Elements_API
             return ResultPong;
         }
 
+        /// <summary>
+        /// (optional) Releases resources and authorization used by this instance and sends summary diag event
+        /// </summary>
+        public void Close()
+        {
+            if (InstanceRequestCounter > 0)
+            {
+                string traceInfo = string.Format("ce(close,) {0}", GetStatisticsSummary());
+                    //HttpClientInstanceCounter = 0;
+                OnDiagTrace(traceInfo);
+            }
+            this.APIAuthorization = null;
+            this.DiagTrace = null;
+        }
+
+        public string GetLastFailureInformation()
+        {
+            return LastFailureInformation;
+        }
+
+        public string GetStatisticsSummary()
+        {
+            string result;
+            lock (StaticLockObject)
+            {
+                if (InstanceRequestCounter > 0)
+                {
+                    double LifeSpanMS = DateTime.Now.Subtract(InstanceCreated).TotalMilliseconds;
+                    if (LifeSpanMS == 0) LifeSpanMS = 1;
+                    string traceInfo = string.Format("#{0}/{1}  r={2}; Life={7:F1}s; Used={3:F1}s; Avg={4:F1}s; Busy={8:P1}; Connector Totals: r={5}, Used={6:F1}s ", ConnectorInstanceNumber, ConnectorInstanceCounter,
+                                                        InstanceRequestCounter, InstanceTotalRequestMS / 1000d, InstanceTotalRequestMS / InstanceRequestCounter,
+                                                        RequestCounter, TotalRequestMS / 1000d,
+                                                        LifeSpanMS / 1000d, InstanceTotalRequestMS / LifeSpanMS);
+                    //HttpClientInstanceCounter = 0;
+                    result = traceInfo;
+                }
+                else result = "No work has been performed";
+            }
+            return result;
+        }
 
         #region "documents/files and folders"
 
@@ -181,7 +240,7 @@ namespace Cloud_Elements_API
             return ResultList;
         }
 
-        public async Task<CloudFile> Copy(CloudFile sourceFile , string identifier, string targetPath)
+        public async Task<CloudFile> Copy(CloudFile sourceFile, string identifier, string targetPath)
         {
             return await Copy(sourceFile.EntryType, FileSpecificationType.ID, sourceFile.id, targetPath);
         }
@@ -194,7 +253,7 @@ namespace Cloud_Elements_API
         /// <param name="identifier"></param>
         /// <param name="targetPath"></param>
         /// <returns></returns>
-        public async Task<CloudFile> Copy(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier, string targetPath )
+        public async Task<CloudFile> Copy(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier, string targetPath)
         {
 
             HttpResponseMessage response;
@@ -310,11 +369,11 @@ namespace Cloud_Elements_API
             bool Result;
             HttpResponseMessage response;
             string RequestURL;
-             
+
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL ="hubs/documents/files/{0}?emptyTrash={1}";
+                    RequestURL = "hubs/documents/files/{0}?emptyTrash={1}";
                     break;
                 case FileSpecificationType.Path:
                     RequestURL = "hubs/documents/files?path={0}&emptyTrash={1}";
@@ -564,7 +623,7 @@ namespace Cloud_Elements_API
         {
             NonSuccess,
             All,
-             Verbose
+            Verbose
         }
 
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI)
@@ -575,54 +634,73 @@ namespace Cloud_Elements_API
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI, HttpContent content)
         {
             DateTime startms = DateTime.Now;
-            RequestCounter++;
+            lock (StaticLockObject) RequestCounter++;
+            InstanceRequestCounter++;
             HttpResponseMessage response;
             Task<HttpResponseMessage> HttpRequestTask;
-            switch (verb)
+            lock (APIClient) // not clear that this is required, but...
             {
-                case HttpVerb.Get:
-                    HttpRequestTask = APIClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
-                    break;
-                case HttpVerb.Delete:
-                    HttpRequestTask = APIClient.DeleteAsync(URI);
-                    break;
-                case HttpVerb.Post:
-                    if (content == null) throw new ArgumentException("Post requests require content");
-                    HttpRequestTask = APIClient.PostAsync(URI, content);
-                    break;
-                case HttpVerb.Patch:
-                    if (content == null) throw new ArgumentException("Patch requests require content");
-                    var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
-                    HttpRequestTask = APIClient.SendAsync(request);
-                    break;
-                default:
-                    throw new ApplicationException("Unsupported verb");
+                switch (verb)
+                {
+                    case HttpVerb.Get:
+                        HttpRequestTask = APIClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
+                        break;
+                    case HttpVerb.Delete:
+                        HttpRequestTask = APIClient.DeleteAsync(URI);
+                        break;
+                    case HttpVerb.Post:
+                        if (content == null) throw new ArgumentException("Post requests require content");
+                        HttpRequestTask = APIClient.PostAsync(URI, content);
+                        break;
+                    case HttpVerb.Patch:
+                        if (content == null) throw new ArgumentException("Patch requests require content");
+                        var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
+                        HttpRequestTask = APIClient.SendAsync(request);
+                        break;
+                    default:
+                        throw new ApplicationException("Unsupported verb");
+                }
             }
-
             response = await HttpRequestTask;
             double msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
-            TotalRequestMS += msUsed;
-            if ((!response.IsSuccessStatusCode ) || (DiagOutputLevel > TraceLevel.NonSuccess )) { 
-                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URI, response.StatusCode, msUsed / 1000.0);
+            lock (StaticLockObject) TotalRequestMS += msUsed;
+            InstanceTotalRequestMS += msUsed;
+            LastFailureInformation = "";
+            if ((!response.IsSuccessStatusCode) || (DiagOutputLevel > TraceLevel.NonSuccess))
+            {
+                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb,URIForLogging( URI), response.StatusCode, msUsed / 1000.0);
                 if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
                 {
                     Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
-                    if (info != null) {
+                    if (info != null)
+                    {
                         Newtonsoft.Json.Linq.JToken msgtoken = info.GetValue("message");
+                        Newtonsoft.Json.Linq.JToken rqIDtoken = info.GetValue("requestId");
+                        if (rqIDtoken != null)  traceInfo = string.Concat(traceInfo, "; RequestId=", rqIDtoken.ToString());
                         if (msgtoken != null)
-                        {  traceInfo = traceInfo + " " + msgtoken.ToString(); }
-                                      }
-                }                
+                        {
+                            traceInfo = string.Concat(traceInfo, " - ", msgtoken.ToString());
+                            LastFailureInformation = msgtoken.ToString();
+                            if (rqIDtoken != null) LastFailureInformation = string.Format("{0}; (Request #{1}, ID {2})" , LastFailureInformation, RequestCounter, rqIDtoken.ToString());
+                        }
+                    }
+                }
                 OnDiagTrace(traceInfo);
             }
             response.EnsureSuccessStatusCode();
             return response;
         }
 
+        string URIForLogging(string rawURI)
+        {
+            if (SimplifyLoggedURIs) rawURI = rawURI.Replace("%2F", "/");
+                return rawURI;
+        }
+
         HttpClient NewHttpClient()
         {
             HttpClient client = new HttpClient(new HttpClientHandler() { AutomaticDecompression = System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.GZip });
-            ++HttpClientInstanceCounter;
+            lock (StaticLockObject) ++HttpClientInstanceCounter;
             client.BaseAddress = new Uri(ElementsPublicUrl);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -661,7 +739,7 @@ namespace Cloud_Elements_API
     {
         public Int64 shared; //  optional),
         public Int64 total; //  optional),
-        public Int64  used; //  optional),
+        public Int64 used; //  optional),
     }
 
     public class FileContent
