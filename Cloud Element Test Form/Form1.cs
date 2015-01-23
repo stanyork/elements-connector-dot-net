@@ -349,7 +349,12 @@ namespace Cloud_Element_Test_Form
                 StatusMsg("Requesting...");
                 Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(currentRow.id);
 
+                StatusMsg(string.Format(">> Get File Result: content-length: {0}; disposition: [{1}]", Result.ContentLength, Result.Disposition));
                 string fn = System.IO.Path.Combine(WorkPath, Result.Disposition);
+                if (Result.Disposition.Length == 0)
+                {
+                    fn += currentRow.name;
+                }
                 if (!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(fn)))
                 {
                     System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fn));
