@@ -28,7 +28,9 @@ namespace Cloud_Element_Test_Form
         {
             TestStatusMsg("Beginning test suite...");
             TestStatusMsg("Testing with " + toolStripTxtConnectionNow.Text);
-            string tfoldername = "/Cloud Elements API Test Folder";
+            string basepath = txtFolderPath.Text;
+            if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
+            string tfoldername = basepath + "/Cloud Elements API Test Folder";
             Boolean remnant = false;
             Boolean fremnant = false;
             DateTime StartTime = DateTime.Now;
@@ -239,6 +241,7 @@ namespace Cloud_Element_Test_Form
                 TestStatusMsg("Delete Tag failed: " + edt.Message);
             }
 
+            //SEVENTH TEST: Async Uploads
             TestStatusMsg("Test: Multiple ASYNC uploads...");
             try
             {
@@ -258,6 +261,48 @@ namespace Cloud_Element_Test_Form
 
             }
 
+
+            //EIGHTH TEST: Download File
+            TestStatusMsg("Test: Downloading file...");
+            try
+            {
+                string TargetPath = tfoldername + string.Format("/SFCE_test_file_{0}.txt", "1");
+                Cloud_Elements_API.CloudFile FileRow = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, TargetPath);
+                if (FileRow != null)
+                {
+                    Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(FileRow.id);
+                    string fn = System.IO.Path.Combine(WorkPath, Result.Disposition);
+                    if (!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(fn)))
+                    {
+                        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fn));
+                    }
+                    if (System.IO.File.Exists(fn))
+                    {
+                        System.IO.File.Delete(fn);
+                    }
+                    System.IO.Stream Target = new System.IO.FileStream(fn, System.IO.FileMode.Create, System.Security.AccessControl.FileSystemRights.FullControl, System.IO.FileShare.None, 16384, System.IO.FileOptions.Asynchronous, null);
+                    await Cloud_Elements_API.Tools.StreamCopyWithProgress(Result.ContentStream, Target, Result.ContentLength);
+                    Result.ContentStream.Close();
+                    Target.Close();
+                    System.IO.FileInfo finfo = new System.IO.FileInfo(fn);
+                    TestStatusMsg(string.Format("Stored {1}: {0}", Cloud_Elements_API.Tools.SizeInBytesToString(finfo.Length), Result.Disposition));
+                    int DownloadedHash = Cloud_Elements_API.Tools.FileToString(fn).GetHashCode();
+                    if (DownloadedHash != DownloadTestExpectedHash)
+                    {
+                        TestStatusMsg(string.Format("Warning: Hash of {0} does not match", fn));
+                    }
+                }
+                else
+                {
+                    TestStatusMsg(string.Format("Could not find file to download ({0})", TargetPath));
+                }
+
+            }
+            catch (Exception ed)
+            {
+                TestStatusMsg("File download failed: " + ed.Message);
+            }
+
             TestStatusMsg(string.Format("Test suite complete: Elapsed time: {0:F1}s", DateTime.Now.Subtract(StartTime).TotalSeconds));
 
         }
@@ -267,7 +312,22 @@ namespace Cloud_Element_Test_Form
         {
 
             TestStatusMsg("Cleaning up test...");
-            string tfoldername = "/Cloud Elements API Test Folder";
+            string basepath = txtFolderPath.Text;
+            if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
+            string tfoldername = basepath +  "/Cloud Elements API Test Folder";
+
+            //check for file on disk
+            string fn = System.IO.Path.Combine(WorkPath, "SFCE_test_file_1.txt");
+            if (System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(fn)))
+            {
+               if (System.IO.File.Exists(fn))
+                   {
+                       System.IO.File.Delete(fn);
+                       TestStatusMsg("Downloaded test file deleted");
+                   }
+            }
+            
+
             //check for folder
             try
             {
@@ -314,16 +374,20 @@ namespace Cloud_Element_Test_Form
         }
 
 
+        int DownloadTestExpectedHash;
+
         async Task<string> TestMultiFileAsyncUploads()
         {
-
-            string tfoldername = "/Cloud Elements API Test Folder";
+            string basepath = txtFolderPath.Text;
+            if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
+            string tfoldername = basepath + "/Cloud Elements API Test Folder";
             System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>> UploadTasks = new System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>>();
             //System.Collections.Generic.Queue<System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Cloud_Elements_API.CloudFile>> UploadTasks = new System.Collections.Generic.Queue<System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Cloud_Elements_API.CloudFile>>();
             DateTime Started = DateTime.Now;
             int uploadCount = 0;
             System.IO.Stream teststream;
             string RandomContent = GenerateRandomContent(128 * 1024 * 8);
+            DownloadTestExpectedHash = RandomContent.GetHashCode();
             long TotalBytes = 0;
             for (int i = 1; i <= 8; i++)
             {

@@ -63,7 +63,13 @@
             this.chkWithTags = new System.Windows.Forms.CheckBox();
             this.dgFolderContents = new System.Windows.Forms.DataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.createdDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.modifiedDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.directoryDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.HasTags = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FolderRowContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tsGetThisFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetPriorFolder = new System.Windows.Forms.ToolStripMenuItem();
@@ -74,12 +80,14 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsGetFileLink = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.cmdGetFolderContents = new System.Windows.Forms.Button();
             this.txtFolderPath = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.tpLog = new System.Windows.Forms.TabPage();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.tpTest = new System.Windows.Forms.TabPage();
+            this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
             this.cmdTestClearLog = new System.Windows.Forms.Button();
             this.chkTestCleanup = new System.Windows.Forms.CheckBox();
             this.tbTestOutput = new System.Windows.Forms.TextBox();
@@ -88,14 +96,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
-            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.createdDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.modifiedDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.directoryDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.cmdForceClean = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -104,9 +105,9 @@
             this.tpContents.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgFolderContents)).BeginInit();
             this.FolderRowContextMenu.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.tpLog.SuspendLayout();
             this.tpTest.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -444,7 +445,35 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 60;
+            this.Column1.Width = 58;
+            // 
+            // sizeDataGridViewTextBoxColumn
+            // 
+            this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "size";
+            this.sizeDataGridViewTextBoxColumn.HeaderText = "size";
+            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
+            this.sizeDataGridViewTextBoxColumn.Width = 5;
+            // 
+            // createdDateDataGridViewTextBoxColumn
+            // 
+            this.createdDateDataGridViewTextBoxColumn.DataPropertyName = "createdDate";
+            this.createdDateDataGridViewTextBoxColumn.HeaderText = "createdDate";
+            this.createdDateDataGridViewTextBoxColumn.Name = "createdDateDataGridViewTextBoxColumn";
+            // 
+            // modifiedDateDataGridViewTextBoxColumn
+            // 
+            this.modifiedDateDataGridViewTextBoxColumn.DataPropertyName = "modifiedDate";
+            this.modifiedDateDataGridViewTextBoxColumn.HeaderText = "modifiedDate";
+            this.modifiedDateDataGridViewTextBoxColumn.Name = "modifiedDateDataGridViewTextBoxColumn";
+            // 
+            // directoryDataGridViewCheckBoxColumn
+            // 
+            this.directoryDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
+            this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
+            this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
+            this.directoryDataGridViewCheckBoxColumn.Width = 40;
             // 
             // HasTags
             // 
@@ -452,6 +481,23 @@
             this.HasTags.HeaderText = "Tagged";
             this.HasTags.Name = "HasTags";
             this.HasTags.ReadOnly = true;
+            // 
+            // pathDataGridViewTextBoxColumn
+            // 
+            this.pathDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.pathDataGridViewTextBoxColumn.DataPropertyName = "path";
+            this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
+            this.pathDataGridViewTextBoxColumn.HeaderText = "path";
+            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
+            this.pathDataGridViewTextBoxColumn.Width = 51;
+            // 
+            // idDataGridViewTextBoxColumn
+            // 
+            this.idDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            this.idDataGridViewTextBoxColumn.DataPropertyName = "id";
+            this.idDataGridViewTextBoxColumn.HeaderText = "id";
+            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
+            this.idDataGridViewTextBoxColumn.Width = 5;
             // 
             // FolderRowContextMenu
             // 
@@ -528,6 +574,11 @@
             this.tsGetFileMenuItem.Text = "Get File";
             this.tsGetFileMenuItem.Click += new System.EventHandler(this.tsGetFileMenuItem_Click);
             // 
+            // cloudFileBindingSource
+            // 
+            this.cloudFileBindingSource.AllowNew = false;
+            this.cloudFileBindingSource.DataSource = typeof(Cloud_Elements_API.CloudFile);
+            // 
             // cmdGetFolderContents
             // 
             this.cmdGetFolderContents.Enabled = false;
@@ -580,6 +631,7 @@
             // 
             // tpTest
             // 
+            this.tpTest.Controls.Add(this.cmdForceClean);
             this.tpTest.Controls.Add(this.chkAutoSaveLog);
             this.tpTest.Controls.Add(this.cmdTestClearLog);
             this.tpTest.Controls.Add(this.chkTestCleanup);
@@ -592,6 +644,19 @@
             this.tpTest.TabIndex = 3;
             this.tpTest.Text = "Test";
             this.tpTest.UseVisualStyleBackColor = true;
+            // 
+            // chkAutoSaveLog
+            // 
+            this.chkAutoSaveLog.AutoSize = true;
+            this.chkAutoSaveLog.Checked = true;
+            this.chkAutoSaveLog.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkAutoSaveLog.Location = new System.Drawing.Point(450, 33);
+            this.chkAutoSaveLog.Name = "chkAutoSaveLog";
+            this.chkAutoSaveLog.Size = new System.Drawing.Size(231, 17);
+            this.chkAutoSaveLog.TabIndex = 4;
+            this.chkAutoSaveLog.Tag = "chkTestCleanup";
+            this.chkAutoSaveLog.Text = "Automatically save log (overwrites previous)";
+            this.chkAutoSaveLog.UseVisualStyleBackColor = true;
             // 
             // cmdTestClearLog
             // 
@@ -661,68 +726,16 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // chkAutoSaveLog
+            // cmdForceClean
             // 
-            this.chkAutoSaveLog.AutoSize = true;
-            this.chkAutoSaveLog.Checked = true;
-            this.chkAutoSaveLog.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoSaveLog.Location = new System.Drawing.Point(450, 33);
-            this.chkAutoSaveLog.Name = "chkAutoSaveLog";
-            this.chkAutoSaveLog.Size = new System.Drawing.Size(231, 17);
-            this.chkAutoSaveLog.TabIndex = 4;
-            this.chkAutoSaveLog.Tag = "chkTestCleanup";
-            this.chkAutoSaveLog.Text = "Automatically save log (overwrites previous)";
-            this.chkAutoSaveLog.UseVisualStyleBackColor = true;
-            // 
-            // sizeDataGridViewTextBoxColumn
-            // 
-            this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "size";
-            this.sizeDataGridViewTextBoxColumn.HeaderText = "size";
-            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-            this.sizeDataGridViewTextBoxColumn.Width = 5;
-            // 
-            // createdDateDataGridViewTextBoxColumn
-            // 
-            this.createdDateDataGridViewTextBoxColumn.DataPropertyName = "createdDate";
-            this.createdDateDataGridViewTextBoxColumn.HeaderText = "createdDate";
-            this.createdDateDataGridViewTextBoxColumn.Name = "createdDateDataGridViewTextBoxColumn";
-            // 
-            // modifiedDateDataGridViewTextBoxColumn
-            // 
-            this.modifiedDateDataGridViewTextBoxColumn.DataPropertyName = "modifiedDate";
-            this.modifiedDateDataGridViewTextBoxColumn.HeaderText = "modifiedDate";
-            this.modifiedDateDataGridViewTextBoxColumn.Name = "modifiedDateDataGridViewTextBoxColumn";
-            // 
-            // directoryDataGridViewCheckBoxColumn
-            // 
-            this.directoryDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
-            this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
-            this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 42;
-            // 
-            // pathDataGridViewTextBoxColumn
-            // 
-            this.pathDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.pathDataGridViewTextBoxColumn.DataPropertyName = "path";
-            this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
-            this.pathDataGridViewTextBoxColumn.HeaderText = "path";
-            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 53;
-            // 
-            // idDataGridViewTextBoxColumn
-            // 
-            this.idDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            this.idDataGridViewTextBoxColumn.DataPropertyName = "id";
-            this.idDataGridViewTextBoxColumn.HeaderText = "id";
-            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
-            this.idDataGridViewTextBoxColumn.Width = 5;
-            // 
-            // cloudFileBindingSource
-            // 
-            this.cloudFileBindingSource.AllowNew = false;
-            this.cloudFileBindingSource.DataSource = typeof(Cloud_Elements_API.CloudFile);
+            this.cmdForceClean.Location = new System.Drawing.Point(760, 29);
+            this.cmdForceClean.Name = "cmdForceClean";
+            this.cmdForceClean.Size = new System.Drawing.Size(84, 23);
+            this.cmdForceClean.TabIndex = 5;
+            this.cmdForceClean.Tag = "cmdForceClean";
+            this.cmdForceClean.Text = "Cleanup Test";
+            this.cmdForceClean.UseVisualStyleBackColor = true;
+            this.cmdForceClean.Click += new System.EventHandler(this.cmdForceClean_Click);
             // 
             // Form1
             // 
@@ -749,11 +762,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgFolderContents)).EndInit();
             this.FolderRowContextMenu.ResumeLayout(false);
             this.FolderRowContextMenu.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.tpLog.ResumeLayout(false);
             this.tpLog.PerformLayout();
             this.tpTest.ResumeLayout(false);
             this.tpTest.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -827,6 +840,7 @@
         private System.Windows.Forms.CheckBox chkTestCleanup;
         private System.Windows.Forms.Button cmdTestClearLog;
         private System.Windows.Forms.CheckBox chkAutoSaveLog;
+        private System.Windows.Forms.Button cmdForceClean;
     }
 }
 

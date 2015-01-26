@@ -245,7 +245,7 @@ namespace Cloud_Element_Test_Form
             }
             else
             {
-                if (System.Windows.Forms.MessageBox.Show(string.Format("Downdload {0}", currentRow.path), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                if (System.Windows.Forms.MessageBox.Show(string.Format("Download {0}", currentRow.path), "Confirmation", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                 {
                     tsGetFileMenuItem_Click(sender, e);
                 }
@@ -632,6 +632,13 @@ namespace Cloud_Element_Test_Form
         private void cmdTestClearLog_Click(object sender, EventArgs e)
         {
             tbTestOutput.Text = "";
+        }
+
+        private async void cmdForceClean_Click(object sender, EventArgs e)
+        {
+            Task UnitTestClean = CleanupUnitTest();
+            await UnitTestClean;
+           
         }
 
 
