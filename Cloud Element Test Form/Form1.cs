@@ -563,7 +563,32 @@ namespace Cloud_Element_Test_Form
             Task refresh = RefreshCurrentFolder();
         }
 
-        
+        private async void getMetadataByPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!HasGottenFolder()) return;
+            Cloud_Elements_API.CloudFile currentRow = null;
+            Cloud_Elements_API.CloudFile CloudFileInfoByPath = null;
+            if (!HasCurrentCloudFile(ref currentRow)) return;
+            Cloud_Elements_API.CloudElementsConnector.TraceLevel diagTraceWas = Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel;
+            try
+            {
+                Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = Cloud_Elements_API.CloudElementsConnector.TraceLevel.All;
+                CloudFileInfoByPath = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path);
+                if (CloudFileInfoByPath == null) StatusMsg("Nothing Returned!  (not expecting not found)");
+                else
+                {
+                    StatusMsg(string.Format("OK: ID is {0}", CloudFileInfoByPath.id));
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMsg(string.Format("FAILED: {0}", ex.Message));
+            }
+            finally
+            {
+                Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = diagTraceWas;
+            }
+        }
 
         private void tsTxtObjectName_Click(object sender, EventArgs e)
         {
@@ -640,6 +665,8 @@ namespace Cloud_Element_Test_Form
             await UnitTestClean;
            
         }
+
+     
 
 
     }

@@ -87,6 +87,7 @@
             this.tpLog = new System.Windows.Forms.TabPage();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.tpTest = new System.Windows.Forms.TabPage();
+            this.cmdForceClean = new System.Windows.Forms.Button();
             this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
             this.cmdTestClearLog = new System.Windows.Forms.Button();
             this.chkTestCleanup = new System.Windows.Forms.CheckBox();
@@ -96,7 +97,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.cmdForceClean = new System.Windows.Forms.Button();
+            this.getMetadataByPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -445,7 +446,7 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 58;
+            this.Column1.Width = 60;
             // 
             // sizeDataGridViewTextBoxColumn
             // 
@@ -473,7 +474,7 @@
             this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
             this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
             this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 40;
+            this.directoryDataGridViewCheckBoxColumn.Width = 42;
             // 
             // HasTags
             // 
@@ -489,7 +490,7 @@
             this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
             this.pathDataGridViewTextBoxColumn.HeaderText = "path";
             this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 51;
+            this.pathDataGridViewTextBoxColumn.Width = 53;
             // 
             // idDataGridViewTextBoxColumn
             // 
@@ -510,29 +511,30 @@
             this.tsFileTagInfoMenuItem,
             this.toolStripSeparator2,
             this.tsGetFileLink,
-            this.tsGetFileMenuItem});
+            this.tsGetFileMenuItem,
+            this.getMetadataByPathToolStripMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(166, 173);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(189, 217);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
             // 
             this.tsGetThisFolder.Name = "tsGetThisFolder";
-            this.tsGetThisFolder.Size = new System.Drawing.Size(165, 22);
+            this.tsGetThisFolder.Size = new System.Drawing.Size(188, 22);
             this.tsGetThisFolder.Text = "Get This Folder";
             this.tsGetThisFolder.Click += new System.EventHandler(this.tsGetThisFolder_Click);
             // 
             // tsGetPriorFolder
             // 
             this.tsGetPriorFolder.Name = "tsGetPriorFolder";
-            this.tsGetPriorFolder.Size = new System.Drawing.Size(165, 22);
+            this.tsGetPriorFolder.Size = new System.Drawing.Size(188, 22);
             this.tsGetPriorFolder.Text = "Get Prior Folder";
             this.tsGetPriorFolder.Click += new System.EventHandler(this.tsGetPriorFolder_Click);
             // 
             // tsDeleteFolderMenuItem
             // 
             this.tsDeleteFolderMenuItem.Name = "tsDeleteFolderMenuItem";
-            this.tsDeleteFolderMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.tsDeleteFolderMenuItem.Size = new System.Drawing.Size(188, 22);
             this.tsDeleteFolderMenuItem.Text = "Delete this Folder";
             this.tsDeleteFolderMenuItem.Click += new System.EventHandler(this.deleteThisFolderToolStripMenuItem_Click);
             // 
@@ -547,30 +549,30 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(162, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(185, 6);
             // 
             // tsFileTagInfoMenuItem
             // 
             this.tsFileTagInfoMenuItem.Name = "tsFileTagInfoMenuItem";
-            this.tsFileTagInfoMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.tsFileTagInfoMenuItem.Size = new System.Drawing.Size(188, 22);
             this.tsFileTagInfoMenuItem.Text = "Tags...";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(162, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(185, 6);
             // 
             // tsGetFileLink
             // 
             this.tsGetFileLink.Name = "tsGetFileLink";
-            this.tsGetFileLink.Size = new System.Drawing.Size(165, 22);
+            this.tsGetFileLink.Size = new System.Drawing.Size(188, 22);
             this.tsGetFileLink.Text = "Get Link";
             this.tsGetFileLink.Click += new System.EventHandler(this.tsGetFileLink_Click);
             // 
             // tsGetFileMenuItem
             // 
             this.tsGetFileMenuItem.Name = "tsGetFileMenuItem";
-            this.tsGetFileMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.tsGetFileMenuItem.Size = new System.Drawing.Size(188, 22);
             this.tsGetFileMenuItem.Text = "Get File";
             this.tsGetFileMenuItem.Click += new System.EventHandler(this.tsGetFileMenuItem_Click);
             // 
@@ -644,6 +646,17 @@
             this.tpTest.TabIndex = 3;
             this.tpTest.Text = "Test";
             this.tpTest.UseVisualStyleBackColor = true;
+            // 
+            // cmdForceClean
+            // 
+            this.cmdForceClean.Location = new System.Drawing.Point(760, 29);
+            this.cmdForceClean.Name = "cmdForceClean";
+            this.cmdForceClean.Size = new System.Drawing.Size(84, 23);
+            this.cmdForceClean.TabIndex = 5;
+            this.cmdForceClean.Tag = "cmdForceClean";
+            this.cmdForceClean.Text = "Cleanup Test";
+            this.cmdForceClean.UseVisualStyleBackColor = true;
+            this.cmdForceClean.Click += new System.EventHandler(this.cmdForceClean_Click);
             // 
             // chkAutoSaveLog
             // 
@@ -726,16 +739,12 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // cmdForceClean
+            // getMetadataByPathToolStripMenuItem
             // 
-            this.cmdForceClean.Location = new System.Drawing.Point(760, 29);
-            this.cmdForceClean.Name = "cmdForceClean";
-            this.cmdForceClean.Size = new System.Drawing.Size(84, 23);
-            this.cmdForceClean.TabIndex = 5;
-            this.cmdForceClean.Tag = "cmdForceClean";
-            this.cmdForceClean.Text = "Cleanup Test";
-            this.cmdForceClean.UseVisualStyleBackColor = true;
-            this.cmdForceClean.Click += new System.EventHandler(this.cmdForceClean_Click);
+            this.getMetadataByPathToolStripMenuItem.Name = "getMetadataByPathToolStripMenuItem";
+            this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
+            this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -841,6 +850,7 @@
         private System.Windows.Forms.Button cmdTestClearLog;
         private System.Windows.Forms.CheckBox chkAutoSaveLog;
         private System.Windows.Forms.Button cmdForceClean;
+        private System.Windows.Forms.ToolStripMenuItem getMetadataByPathToolStripMenuItem;
     }
 }
 
