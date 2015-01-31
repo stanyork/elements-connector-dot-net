@@ -88,6 +88,7 @@
             this.tpLog = new System.Windows.Forms.TabPage();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.tpTest = new System.Windows.Forms.TabPage();
+            this.chkSerializeGetFileInfoReq = new System.Windows.Forms.CheckBox();
             this.cmdForceClean = new System.Windows.Forms.Button();
             this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
             this.cmdTestClearLog = new System.Windows.Forms.Button();
@@ -98,7 +99,6 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.chkSerializeGetFileInfoReq = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -396,7 +396,7 @@
             this.btnGetPriorFolder.Enabled = false;
             this.btnGetPriorFolder.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Move_Up;
             this.btnGetPriorFolder.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnGetPriorFolder.Location = new System.Drawing.Point(545, 4);
+            this.btnGetPriorFolder.Location = new System.Drawing.Point(623, 6);
             this.btnGetPriorFolder.Name = "btnGetPriorFolder";
             this.btnGetPriorFolder.Size = new System.Drawing.Size(77, 35);
             this.btnGetPriorFolder.TabIndex = 8;
@@ -406,6 +406,7 @@
             // 
             // chkWithTags
             // 
+            this.chkWithTags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.chkWithTags.AutoSize = true;
             this.chkWithTags.Checked = true;
             this.chkWithTags.CheckState = System.Windows.Forms.CheckState.Checked;
@@ -596,7 +597,7 @@
             this.cmdGetFolderContents.Enabled = false;
             this.cmdGetFolderContents.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
             this.cmdGetFolderContents.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.cmdGetFolderContents.Location = new System.Drawing.Point(464, 4);
+            this.cmdGetFolderContents.Location = new System.Drawing.Point(542, 6);
             this.cmdGetFolderContents.Name = "cmdGetFolderContents";
             this.cmdGetFolderContents.Size = new System.Drawing.Size(75, 35);
             this.cmdGetFolderContents.TabIndex = 5;
@@ -610,7 +611,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtFolderPath.Location = new System.Drawing.Point(64, 12);
             this.txtFolderPath.Name = "txtFolderPath";
-            this.txtFolderPath.Size = new System.Drawing.Size(394, 20);
+            this.txtFolderPath.Size = new System.Drawing.Size(472, 20);
             this.txtFolderPath.TabIndex = 4;
             this.txtFolderPath.Text = "/";
             // 
@@ -659,6 +660,16 @@
             this.tpTest.TabIndex = 3;
             this.tpTest.Text = "Test";
             this.tpTest.UseVisualStyleBackColor = true;
+            // 
+            // chkSerializeGetFileInfoReq
+            // 
+            this.chkSerializeGetFileInfoReq.AutoSize = true;
+            this.chkSerializeGetFileInfoReq.Location = new System.Drawing.Point(418, 10);
+            this.chkSerializeGetFileInfoReq.Name = "chkSerializeGetFileInfoReq";
+            this.chkSerializeGetFileInfoReq.Size = new System.Drawing.Size(195, 17);
+            this.chkSerializeGetFileInfoReq.TabIndex = 8;
+            this.chkSerializeGetFileInfoReq.Text = "Serialize Get File Metadata requests";
+            this.chkSerializeGetFileInfoReq.UseVisualStyleBackColor = true;
             // 
             // cmdForceClean
             // 
@@ -751,16 +762,6 @@
             this.saveSecretsFileDialog1.DefaultExt = "json";
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
-            // 
-            // chkSerializeGetFileInfoReq
-            // 
-            this.chkSerializeGetFileInfoReq.AutoSize = true;
-            this.chkSerializeGetFileInfoReq.Location = new System.Drawing.Point(418, 10);
-            this.chkSerializeGetFileInfoReq.Name = "chkSerializeGetFileInfoReq";
-            this.chkSerializeGetFileInfoReq.Size = new System.Drawing.Size(195, 17);
-            this.chkSerializeGetFileInfoReq.TabIndex = 8;
-            this.chkSerializeGetFileInfoReq.Text = "Serialize Get File Metadata requests";
-            this.chkSerializeGetFileInfoReq.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
