@@ -60,12 +60,14 @@ namespace Cloud_Element_Test_Form
                 this.Invoke(new TestMsgDelegate(TestStatusMsg), new object[] { info });
                 return;
             }
-            if (tbTestOutput.Text.Length > 64000)
+            lock (tbTestOutput)
             {
-                tbTestOutput.Text = tbTestOutput.Text.Substring(32000);
+                if (tbTestOutput.Text.Length > 64000)
+                {
+                    tbTestOutput.Text = tbTestOutput.Text.Substring(32000);
+                }
+                tbTestOutput.Text += string.Format("{0}: {1}\r\n", Cloud_Elements_API.Tools.TraceTimeNow(), info);
             }
-            tbTestOutput.Text += string.Format("{0}: {1}\r\n", Cloud_Elements_API.Tools.TraceTimeNow(), info);
-            
         }
 
         private void HandleDiagEvent(object sender, string info)
@@ -379,7 +381,7 @@ namespace Cloud_Element_Test_Form
                 Result.ContentStream.Close();
                 Target.Close();
                 Cloud_Elements_API.Tools.Progress -= Tools_Progress;
-                StatusMsg(string.Format("Stored {1}: {0}", Cloud_Elements_API.Tools.SizeInBytesToString(Result.ContentLength), Result.Disposition));
+                StatusMsg(string.Format("Stored {1}: {0}", Cloud_Elements_API.Tools.SizeInBytesToString(Result.ContentLength), System.IO.Path.GetFileName(fn)));
 
             }
             finally

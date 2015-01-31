@@ -80,6 +80,7 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsGetFileLink = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.getMetadataByPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.cmdGetFolderContents = new System.Windows.Forms.Button();
             this.txtFolderPath = new System.Windows.Forms.TextBox();
@@ -97,7 +98,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.getMetadataByPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkSerializeGetFileInfoReq = new System.Windows.Forms.CheckBox();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -391,6 +392,7 @@
             // 
             // btnGetPriorFolder
             // 
+            this.btnGetPriorFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnGetPriorFolder.Enabled = false;
             this.btnGetPriorFolder.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Move_Up;
             this.btnGetPriorFolder.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -407,7 +409,7 @@
             this.chkWithTags.AutoSize = true;
             this.chkWithTags.Checked = true;
             this.chkWithTags.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkWithTags.Location = new System.Drawing.Point(64, 29);
+            this.chkWithTags.Location = new System.Drawing.Point(843, 29);
             this.chkWithTags.Name = "chkWithTags";
             this.chkWithTags.Size = new System.Drawing.Size(95, 17);
             this.chkWithTags.TabIndex = 7;
@@ -514,7 +516,7 @@
             this.tsGetFileMenuItem,
             this.getMetadataByPathToolStripMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(189, 217);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(189, 195);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
@@ -576,6 +578,13 @@
             this.tsGetFileMenuItem.Text = "Get File";
             this.tsGetFileMenuItem.Click += new System.EventHandler(this.tsGetFileMenuItem_Click);
             // 
+            // getMetadataByPathToolStripMenuItem
+            // 
+            this.getMetadataByPathToolStripMenuItem.Name = "getMetadataByPathToolStripMenuItem";
+            this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
+            this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
+            // 
             // cloudFileBindingSource
             // 
             this.cloudFileBindingSource.AllowNew = false;
@@ -583,6 +592,7 @@
             // 
             // cmdGetFolderContents
             // 
+            this.cmdGetFolderContents.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdGetFolderContents.Enabled = false;
             this.cmdGetFolderContents.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
             this.cmdGetFolderContents.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -596,7 +606,9 @@
             // 
             // txtFolderPath
             // 
-            this.txtFolderPath.Location = new System.Drawing.Point(64, 6);
+            this.txtFolderPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFolderPath.Location = new System.Drawing.Point(64, 12);
             this.txtFolderPath.Name = "txtFolderPath";
             this.txtFolderPath.Size = new System.Drawing.Size(394, 20);
             this.txtFolderPath.TabIndex = 4;
@@ -605,7 +617,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 9);
+            this.label3.Location = new System.Drawing.Point(22, 15);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(36, 13);
             this.label3.TabIndex = 3;
@@ -633,6 +645,7 @@
             // 
             // tpTest
             // 
+            this.tpTest.Controls.Add(this.chkSerializeGetFileInfoReq);
             this.tpTest.Controls.Add(this.cmdForceClean);
             this.tpTest.Controls.Add(this.chkAutoSaveLog);
             this.tpTest.Controls.Add(this.cmdTestClearLog);
@@ -663,7 +676,7 @@
             this.chkAutoSaveLog.AutoSize = true;
             this.chkAutoSaveLog.Checked = true;
             this.chkAutoSaveLog.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoSaveLog.Location = new System.Drawing.Point(450, 33);
+            this.chkAutoSaveLog.Location = new System.Drawing.Point(158, 33);
             this.chkAutoSaveLog.Name = "chkAutoSaveLog";
             this.chkAutoSaveLog.Size = new System.Drawing.Size(231, 17);
             this.chkAutoSaveLog.TabIndex = 4;
@@ -686,7 +699,7 @@
             this.chkTestCleanup.AutoSize = true;
             this.chkTestCleanup.Checked = true;
             this.chkTestCleanup.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkTestCleanup.Location = new System.Drawing.Point(217, 33);
+            this.chkTestCleanup.Location = new System.Drawing.Point(158, 10);
             this.chkTestCleanup.Name = "chkTestCleanup";
             this.chkTestCleanup.Size = new System.Drawing.Size(216, 17);
             this.chkTestCleanup.TabIndex = 2;
@@ -708,11 +721,11 @@
             // 
             // cmdTestButton
             // 
-            this.cmdTestButton.Location = new System.Drawing.Point(94, 29);
+            this.cmdTestButton.Location = new System.Drawing.Point(20, 27);
             this.cmdTestButton.Name = "cmdTestButton";
             this.cmdTestButton.Size = new System.Drawing.Size(117, 23);
             this.cmdTestButton.TabIndex = 0;
-            this.cmdTestButton.Text = "Test Functions";
+            this.cmdTestButton.Text = "Run Test";
             this.cmdTestButton.UseVisualStyleBackColor = true;
             this.cmdTestButton.Click += new System.EventHandler(this.cmdTestButton_Click);
             // 
@@ -739,12 +752,15 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // getMetadataByPathToolStripMenuItem
+            // chkSerializeGetFileInfoReq
             // 
-            this.getMetadataByPathToolStripMenuItem.Name = "getMetadataByPathToolStripMenuItem";
-            this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-            this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
-            this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
+            this.chkSerializeGetFileInfoReq.AutoSize = true;
+            this.chkSerializeGetFileInfoReq.Location = new System.Drawing.Point(418, 10);
+            this.chkSerializeGetFileInfoReq.Name = "chkSerializeGetFileInfoReq";
+            this.chkSerializeGetFileInfoReq.Size = new System.Drawing.Size(195, 17);
+            this.chkSerializeGetFileInfoReq.TabIndex = 8;
+            this.chkSerializeGetFileInfoReq.Text = "Serialize Get File Metadata requests";
+            this.chkSerializeGetFileInfoReq.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -851,6 +867,7 @@
         private System.Windows.Forms.CheckBox chkAutoSaveLog;
         private System.Windows.Forms.Button cmdForceClean;
         private System.Windows.Forms.ToolStripMenuItem getMetadataByPathToolStripMenuItem;
+        private System.Windows.Forms.CheckBox chkSerializeGetFileInfoReq;
     }
 }
 

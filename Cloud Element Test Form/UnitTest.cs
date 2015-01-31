@@ -29,8 +29,12 @@ namespace Cloud_Element_Test_Form
             TestStatusMsg("Beginning test suite...");
             TestStatusMsg("Testing with " + toolStripTxtConnectionNow.Text);
             string basepath = txtFolderPath.Text;
+            SerializeGetFileMetadataRequests = chkSerializeGetFileInfoReq.Checked;
+
             if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
             string tfoldername = basepath + "/Cloud Elements API Test Folder";
+            AsyncBasePath = tfoldername;
+
             Boolean remnant = false;
             Boolean fremnant = false;
             DateTime StartTime = DateTime.Now;
@@ -243,17 +247,27 @@ namespace Cloud_Element_Test_Form
 
             //SEVENTH TEST: Async Uploads
             TestStatusMsg("Test: Multiple ASYNC uploads...");
+            NumberOfFilesAlreadyUploaded = 0;
+            bool AsyncUploadPassed = false;
+            System.Func<Task<string>> UploadTestAction;
+            Task<Task<string>> AsyncUploadTest = null;
+            Task<string> FinalAwaitableTestTask = null;
+            System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Task<string>> AwaitableTestTask;
             try
             {
                 string info;
                 // we need to run away from the UI
-                System.Func<Task<string>> UploadTestAction = new System.Func<Task<string>>(TestMultiFileAsyncUploads);
+                UploadTestAction = new System.Func<Task<string>>(TestMultiFileAsyncUploads);
 
-                Task<Task<string>> AsyncUploadTest = new Task<Task<string>>(UploadTestAction);
+                AsyncUploadTest = new Task<Task<string>>(UploadTestAction);
                 AsyncUploadTest.Start();
-                Task<string> ResultTask = await AsyncUploadTest.ConfigureAwait(false);
-                info = await ResultTask;
+               AwaitableTestTask  =   AsyncUploadTest.ConfigureAwait(false);
+               FinalAwaitableTestTask = await AwaitableTestTask;
+               info = await FinalAwaitableTestTask;
                 TestStatusMsg(info);
+                AsyncUploadPassed = true;
+                
+                NumberOfFilesAlreadyUploaded = 8;
             }
             catch (Exception eu)
             {
@@ -261,6 +275,16 @@ namespace Cloud_Element_Test_Form
 
             }
 
+            if (AsyncUploadPassed)
+            {
+                //SEVENTH TEST: repeat Async Uploads
+                  UploadTestAction = new System.Func<Task<string>>(TestMultiFileAsyncUploads);
+                  AsyncUploadTest = new Task<Task<string>>(UploadTestAction) ;
+                  TestStatusMsg("Test: Repeat Multiple ASYNC uploads, without waiting...");
+                  AsyncUploadTest.Start();
+                  AwaitableTestTask = AsyncUploadTest.ConfigureAwait(false);
+                  
+            }
 
             //EIGHTH TEST: Download File
             TestStatusMsg("Test: Downloading file...");
@@ -302,6 +326,47 @@ namespace Cloud_Element_Test_Form
             {
                 TestStatusMsg("File download failed: " + ed.Message);
             }
+
+
+            if (AsyncUploadPassed)
+            {
+                //NINETH TEST: Async Meta Info
+                TestStatusMsg("Test: Multiple ASYNC File Meta Info reads ...");
+                NumberOfFilesAlreadyUploaded = 0;
+                System.Func<Task<string>> TestMetaInfoAction;
+                Task<Task<string>> AsyncMetaInfoTest = null;
+                Task<string> FinalAwaitableMetaInfoTask = null;
+                System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Task<string>> AwaitableMetaInfoTask;
+                try
+                {
+                    
+                    // we need to run away from the UI
+                    TestMetaInfoAction = new System.Func<Task<string>>(TestAsyncGetFileMeta);
+
+                    AsyncMetaInfoTest = new Task<Task<string>>(TestMetaInfoAction);
+                    AsyncMetaInfoTest.Start();
+                    AwaitableMetaInfoTask = AsyncMetaInfoTest.ConfigureAwait(false);
+                    FinalAwaitableMetaInfoTask = await AwaitableMetaInfoTask;
+                  
+
+                }
+                catch (Exception eu)
+                {
+                    TestStatusMsg("Async Meta Info    failed: " + eu.Message);
+
+                }
+
+
+                AwaitableTestTask = AsyncUploadTest.ConfigureAwait(false);
+                FinalAwaitableTestTask = await AwaitableTestTask;
+                string FinalInfo = await FinalAwaitableTestTask;
+                TestStatusMsg(FinalInfo);
+                FinalInfo = await FinalAwaitableMetaInfoTask;
+                TestStatusMsg(FinalInfo);
+            }
+
+
+
 
             TestStatusMsg(string.Format("Test suite complete: Elapsed time: {0:F1}s", DateTime.Now.Subtract(StartTime).TotalSeconds));
 
@@ -375,19 +440,22 @@ namespace Cloud_Element_Test_Form
 
 
         int DownloadTestExpectedHash;
+        int NumberOfFilesAlreadyUploaded=0;
+        bool SerializeGetFileMetadataRequests = true;
+        string AsyncBasePath;
 
         async Task<string> TestMultiFileAsyncUploads()
         {
-            string basepath = txtFolderPath.Text;
-            if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
-            string tfoldername = basepath + "/Cloud Elements API Test Folder";
+            string tfoldername = AsyncBasePath; // set at start of tests
             System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>> UploadTasks = new System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>>();
-            //System.Collections.Generic.Queue<System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Cloud_Elements_API.CloudFile>> UploadTasks = new System.Collections.Generic.Queue<System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Cloud_Elements_API.CloudFile>>();
+            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>() ;
+
+
             DateTime Started = DateTime.Now;
             int uploadCount = 0;
             System.IO.Stream teststream;
-            string RandomContent = GenerateRandomContent(128 * 1024 * 8);
-            DownloadTestExpectedHash = RandomContent.GetHashCode();
+            string RandomContent = GenerateRandomContent(256 * 1024 * 8);
+            if (NumberOfFilesAlreadyUploaded == 0) DownloadTestExpectedHash = RandomContent.GetHashCode();
             long TotalBytes = 0;
             for (int i = 1; i <= 8; i++)
             {
@@ -397,8 +465,10 @@ namespace Cloud_Element_Test_Form
                 List<String> TagList = new List<String>();
                 long sizeInBytes = teststream.Length;
                 TotalBytes += sizeInBytes;
-                string TargetPath = tfoldername + string.Format("/SFCE_test_file_{0}.txt", i);
-                Task<Cloud_Elements_API.CloudFile> AnUpload = APIConnector.PostFile(teststream, MIMEType,
+                string TargetPath = tfoldername + string.Format("/SFCE_test_file_{0}.txt", i + NumberOfFilesAlreadyUploaded);
+                Cloud_Elements_API.CloudElementsConnector ViaConnector = APIConnector.Clone();
+                ConnectorsUsed.Add(ViaConnector);
+                Task<Cloud_Elements_API.CloudFile> AnUpload = ViaConnector.PostFile(teststream, MIMEType,
                                                            TargetPath, "Temporary test file",
                                                            TagList.ToArray(), false, sizeInBytes);
                 //System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Cloud_Elements_API.CloudFile> AwaitableUpload;
@@ -406,17 +476,31 @@ namespace Cloud_Element_Test_Form
 
                 UploadTasks.Enqueue(AnUpload);
                 uploadCount += 1;
+                 
             }
 
             int rewaitCnt = 0;
+            System.Text.StringBuilder Summary = new System.Text.StringBuilder();
             while (UploadTasks.Count > 0)
             {
                 Task<Cloud_Elements_API.CloudFile> AnUpload = UploadTasks.Dequeue();
 
                 if (AnUpload.GetAwaiter().IsCompleted)
                 {
-                    Cloud_Elements_API.CloudFile Result = await AnUpload;
-                    TestStatusMsg(string.Format("Task {2} Uploaded {4:F1}KB to {0}, id={1}, ok={3}", Result.name, Result.id, AnUpload.Id, !AnUpload.IsFaulted, Result.size / 1024d));
+
+                    try
+                    {
+                        Cloud_Elements_API.CloudFile Result = await AnUpload;
+                        Summary.AppendFormat("\t{5}: Task {2} Uploaded {4:F1}KB to {0}, id={1}, ok={3} \r\n", Result.name, Result.id, AnUpload.Id, !AnUpload.IsFaulted,
+                                                Result.size / 1024d, Cloud_Elements_API.Tools.TraceTimeNow());
+                    }
+                    catch (Exception ex)
+                    {
+                        Summary.AppendFormat("\t{5}: Task {2} Upload Exception {0}, ok={3} \r\n", ex.Message, 0, AnUpload.Id, !AnUpload.IsFaulted,
+                                                0, Cloud_Elements_API.Tools.TraceTimeNow());
+
+                    }
+
                 }
                 else
                 {
@@ -428,12 +512,88 @@ namespace Cloud_Element_Test_Form
 
             }
 
+            foreach (Cloud_Elements_API.CloudElementsConnector ViaConnector in ConnectorsUsed)
+            {
+                ViaConnector.Close();
+            }
+            ConnectorsUsed.Clear();
+
+            Summary.AppendFormat("\t{0}: Finished \r\n", Cloud_Elements_API.Tools.TraceTimeNow());
             double RequiredMS = DateTime.Now.Subtract(Started).TotalMilliseconds;
-            return string.Format("Uploaded {0} files in {1:F2}s, average {2:F2}s / file, {4:F2}ms/KB; Async Waits: {3}", uploadCount, RequiredMS / 1000d, RequiredMS / (1000d * uploadCount),
-                                             rewaitCnt, (RequiredMS) / (TotalBytes / 1024d));
+
+            Summary.Insert(0, string.Format("Uploaded {0} files in {1:F2}s, average {2:F2}s / file, {4:F2}ms/KB; Async Waits: {3} \r\n", uploadCount, RequiredMS / 1000d, RequiredMS / (1000d * uploadCount),
+                                             rewaitCnt, (RequiredMS) / (TotalBytes / 1024d)));
+            return Summary.ToString();
 
         }
 
+        async Task<string> TestAsyncGetFileMeta()
+        {
+            string tfoldername = AsyncBasePath; // as set at start of tests
+            System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>> MetaTasks = new System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>>();
+            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>() ;
+            DateTime Started = DateTime.Now;
+            int MetaCount = 0;
+            for (int rr = 1; rr <= 4; rr++)
+            {
+                for (int i = 1; i <= 16; i++)
+                {
+                    string TargetPath = tfoldername + string.Format("/SFCE_test_file_{0}.txt", i);
+                    Cloud_Elements_API.CloudElementsConnector ViaConnector = null;
+                    ViaConnector = APIConnector.Clone();
+                    Task<Cloud_Elements_API.CloudFile> OneMeta = Cloud_Elements_API.FileOperations.GetCloudFileInfo(ViaConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, TargetPath);
+                    ConnectorsUsed.Add(ViaConnector);
+                    MetaTasks.Enqueue(OneMeta);
+                    if (SerializeGetFileMetadataRequests) OneMeta.Wait();
+                    MetaCount += 1;
+                }
+            }
+
+            int rewaitCnt = 0;
+            System.Text.StringBuilder Summary = new System.Text.StringBuilder();
+            while (MetaTasks.Count > 0)
+            {
+                Task<Cloud_Elements_API.CloudFile> AnUpload = MetaTasks.Dequeue();
+
+                if (AnUpload.GetAwaiter().IsCompleted)
+                {
+                    try
+                    {
+                        Cloud_Elements_API.CloudFile Result = await AnUpload;
+                        Summary.AppendFormat("\t{5}: Task {2} File Info for {0}, id={1}, ok={3} \r\n", Result.name, Result.id, AnUpload.Id, !AnUpload.IsFaulted,
+                                                0, Cloud_Elements_API.Tools.TraceTimeNow());
+                    }
+                    catch (Exception ex)
+                    {
+                        Summary.AppendFormat("\t{5}: Task {2} File Info Exception {0}, ok={3} \r\n", ex.Message , 0, AnUpload.Id, !AnUpload.IsFaulted,
+                                                0, Cloud_Elements_API.Tools.TraceTimeNow());
+
+                    }
+                }
+                else
+                {
+                    //   if (AnUpload.Status == TaskStatus.WaitingForActivation) AnUpload.ci
+                    MetaTasks.Enqueue(AnUpload);
+                    rewaitCnt += 1;
+                    System.Threading.Thread.Sleep(128);
+                }
+
+            }
+
+            foreach (Cloud_Elements_API.CloudElementsConnector ViaConnector in ConnectorsUsed)
+            {
+                ViaConnector.Close();
+            }
+            ConnectorsUsed.Clear();
+
+            Summary.AppendFormat("\t{0}: Finished \r\n", Cloud_Elements_API.Tools.TraceTimeNow());
+            double RequiredMS = DateTime.Now.Subtract(Started).TotalMilliseconds;
+
+            Summary.Insert(0, string.Format("Got {0} file infos in {1:F2}s, average {2:F2}s / file; Async Waits: {3} \r\n", MetaCount, RequiredMS / 1000d, RequiredMS / (1000d * MetaCount),
+                                             rewaitCnt, 0));
+            return Summary.ToString();
+
+        }
 
     }
 }
