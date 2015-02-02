@@ -21,13 +21,18 @@ namespace Cloud_Elements_API
         private static double TotalRequestMS = 0d;
         private int ConnectorInstanceNumber = 0;
         private int InstanceRequestCounter = 0;
+        private int InstanceThrottleDelayCnt = 0;
         private double InstanceTotalRequestMS = 0d;
-
+        private double InstanceThrottleDelayMS = 0d;
+        private static System.Collections.Generic.Dictionary<string, EndpointOptions> EndpointSettings = new System.Collections.Generic.Dictionary<string, EndpointOptions>();
+        private static System.Collections.Generic.Dictionary<string, System.Collections.Generic.Queue<DateTime>> EndpointRecentRequests = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.Queue<DateTime>>();
+        private static System.Collections.Generic.Queue<CloudElementsConnector> FactoryRefurbishedQueue = new System.Collections.Generic.Queue<CloudElementsConnector>();
         // ...hubs/documents/folders/contents?path=%2FSQL&fetchTags=true"
         // ...hubs/documents/files/21794645297/metadata
         private Cloud_Elements_API.CloudAuthorization AuthorizationData;
         private HttpClient APIClient;
         private DateTime InstanceCreated;
+        private string Endpoint = "Unknown";
         private string LastFailureInformation = "";
         #endregion
 
@@ -43,11 +48,42 @@ namespace Cloud_Elements_API
             set
             {
                 AuthorizationData = value;
+
                 if (value == null)
                 {
                     APIClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("basic", "empty");
                 }
-                else APIClient.DefaultRequestHeaders.Authorization = AuthorizationData.GetHeaderValue();
+                else
+                {
+                    APIClient.DefaultRequestHeaders.Authorization = AuthorizationData.GetHeaderValue();
+                    AssureEnpointControlData(Endpoint);
+                }
+            }
+        }
+
+        public int EndpointMaxRequestsPerSecond
+        {
+            get
+            {
+                int result = -1;
+                lock (StaticLockObject)
+                {
+                    if (EndpointSettings.ContainsKey(Endpoint))
+                    {
+                        EndpointOptions options = new EndpointOptions();
+                        result = options.MaxRqPerSecond;
+                    }
+                }
+                return result;
+            }
+            set
+            {
+                AssureEnpointControlData(Endpoint);
+                lock (StaticLockObject)
+                {
+                    EndpointOptions options = EndpointSettings[Endpoint];
+                    options.MaxRqPerSecond = value;
+                }
             }
         }
 
@@ -64,8 +100,9 @@ namespace Cloud_Elements_API
             InstanceCreated = DateTime.Now;
             ElementsPublicUrl = DefaultElementsPublicURL;
             APIClient = NewHttpClient();
-            
-            lock (StaticLockObject) {
+
+            lock (StaticLockObject)
+            {
                 ++ConnectorInstanceCounter;
                 ConnectorInstanceNumber = ConnectorInstanceCounter;
             }
@@ -77,10 +114,17 @@ namespace Cloud_Elements_API
         /// <returns></returns>
         public CloudElementsConnector Clone()
         {
-            CloudElementsConnector result = new CloudElementsConnector();
+            CloudElementsConnector result;
+            lock (StaticLockObject)
+            {
+                if (FactoryRefurbishedQueue.Count > 0) result = FactoryRefurbishedQueue.Dequeue();
+                else result = new CloudElementsConnector();
+            }
+
             result.ElementsPublicUrl = this.ElementsPublicUrl;
             result.APIAuthorization = this.AuthorizationData;
             result.DiagTrace = this.DiagTrace;
+            result.Endpoint = this.Endpoint;
             return result;
         }
         #endregion
@@ -89,8 +133,37 @@ namespace Cloud_Elements_API
         {
             HttpResponseMessage response = await APIExecuteGet("hubs/documents/ping");
             Pong ResultPong = await response.Content.ReadAsAsync<Pong>();
+            Endpoint = ResultPong.endpoint;
+            AssureEnpointControlData(Endpoint);
             return ResultPong;
         }
+
+        private void AssureEnpointControlData(string endpointName)
+        {
+            lock (StaticLockObject)
+            {
+                if (!EndpointSettings.ContainsKey(endpointName))
+                {
+                    EndpointOptions options = new EndpointOptions();
+                    options.LogThrottleDelays = false;
+                    options.RequestsPerSecondWindow = 4;
+                    switch (endpointName)
+                    {
+                        case "box":
+                            options.MaxRqPerSecond = 6;
+                            options.LogHighwaterThroughput = true;
+                            break;
+                        default:
+                            options.MaxRqPerSecond = 32;
+                            break;
+                    }
+                    EndpointSettings.Add(endpointName, options);
+                }
+                if (!EndpointRecentRequests.ContainsKey(endpointName)) EndpointRecentRequests.Add(endpointName, new Queue<DateTime>());
+
+            }
+        }
+
 
         /// <summary>
         /// (optional) Releases resources and authorization used by this instance and sends summary diag event
@@ -100,11 +173,16 @@ namespace Cloud_Elements_API
             if (InstanceRequestCounter > 0)
             {
                 string traceInfo = string.Format("ce(close,) {0}", GetStatisticsSummary());
-                    //HttpClientInstanceCounter = 0;
+                //HttpClientInstanceCounter = 0;
                 OnDiagTrace(traceInfo);
             }
             this.APIAuthorization = null;
             this.DiagTrace = null;
+            InstanceRequestCounter = 0;
+            InstanceTotalRequestMS = 0d;
+            InstanceThrottleDelayCnt = 0;
+            InstanceThrottleDelayMS = 0d;
+            lock (StaticLockObject) FactoryRefurbishedQueue.Enqueue(this);
         }
 
         public string GetLastFailureInformation()
@@ -121,10 +199,11 @@ namespace Cloud_Elements_API
                 {
                     double LifeSpanMS = DateTime.Now.Subtract(InstanceCreated).TotalMilliseconds;
                     if (LifeSpanMS == 0) LifeSpanMS = 1;
-                    string traceInfo = string.Format("#{0}/{1}  r={2}; Life={7:F1}s; Used={3:F1}s; Avg={4:F1}s; Busy={8:P1}; Connector Totals: r={5}, Used={6:F1}s ", ConnectorInstanceNumber, ConnectorInstanceCounter,
+                    string traceInfo = string.Format("#{0}/{1}  r={2}; Life={7:F1}s; Used={3:F1}s; Avg={4:F1}s; Busy={8:P1}; Throttled {9} by {10:F1}s; Connector Totals: r={5}, Used={6:F1}s ", ConnectorInstanceNumber, ConnectorInstanceCounter,
                                                         InstanceRequestCounter, InstanceTotalRequestMS / 1000d, InstanceTotalRequestMS / InstanceRequestCounter,
                                                         RequestCounter, TotalRequestMS / 1000d,
-                                                        LifeSpanMS / 1000d, InstanceTotalRequestMS / LifeSpanMS);
+                                                        LifeSpanMS / 1000d, InstanceTotalRequestMS / LifeSpanMS,
+                                                        InstanceThrottleDelayCnt, InstanceThrottleDelayMS / 1000d);
                     //HttpClientInstanceCounter = 0;
                     result = traceInfo;
                 }
@@ -631,8 +710,79 @@ namespace Cloud_Elements_API
             return await APIExecuteVerb(verb, URI, null);
         }
 
+        private void ThrottleRequestsPerSecond()
+        {
+            EndpointOptions options;
+            if (EndpointSettings.ContainsKey(Endpoint))
+            {
+                options = EndpointSettings[Endpoint];
+            }
+            else
+            {
+                OnDiagTrace("ce(?) Settings missing for endpoint [" + Endpoint + "]");
+                System.Threading.Thread.Sleep(128);
+                return;
+            }
+            if (options.MaxRqPerSecond <= 0) return;
+            int delayMS = 0;
+            double RequestCountSinceBaseline;
+            DateTime BaselineRequestAt;
+            System.Collections.Generic.Queue<DateTime> RecentRqQ;
+            lock (StaticLockObject)
+            {
+                RecentRqQ = EndpointRecentRequests[Endpoint];
+                while ((RecentRqQ.Count > 0) && (DateTime.Now.Subtract(RecentRqQ.Peek()).TotalSeconds > options.RequestsPerSecondWindow))
+                {
+                    RecentRqQ.Dequeue();
+                }
+                if (RecentRqQ.Count > 1)
+                {
+                    BaselineRequestAt = RecentRqQ.Peek(); RequestCountSinceBaseline = RecentRqQ.Count + 1;
+                    double TotalSecsSinceBaseline = DateTime.Now.Subtract(BaselineRequestAt).TotalSeconds;
+                    double RecentReqPerSecond = (RequestCountSinceBaseline / TotalSecsSinceBaseline);
+                    if ((RecentReqPerSecond > options.HighwaterGeneratedRequestsPerSecond) && (TotalSecsSinceBaseline > 0.4) ) 
+                    {
+                        options.HighwaterGeneratedRequestsPerSecond = RecentReqPerSecond;
+                        if (options.LogHighwaterThroughput) OnDiagTrace(string.Format("ce(throughput) [{0}] reached {1:F2}r/s", Endpoint, RecentReqPerSecond));
+                    }
+
+                    if (RecentReqPerSecond >= options.MaxRqPerSecond) delayMS = (int)Math.Ceiling(1000.0 / options.MaxRqPerSecond);
+                    else if ((RecentReqPerSecond > 1) && (RecentReqPerSecond > (options.MaxRqPerSecond / 2)))
+                    {
+                        delayMS = (int)Math.Ceiling((1000.0 / options.MaxRqPerSecond) * (RecentReqPerSecond / options.MaxRqPerSecond));
+                        if (delayMS > 2222) delayMS = 2222;
+                    }
+                }
+                else
+                {
+                    BaselineRequestAt = DateTime.Now; RequestCountSinceBaseline = 1;
+                    delayMS = 0;
+                }
+
+                if (delayMS > 0)
+                {
+                    InstanceThrottleDelayCnt++;
+                    InstanceThrottleDelayMS += delayMS;
+                    // note: actual delay happens outside lock()
+                }
+
+            }
+            if (delayMS > 0)
+            {
+                if (options.LogThrottleDelays) OnDiagTrace(string.Format("ce(throttled) [{0}] delayed {1}ms", Endpoint, delayMS));
+                InstanceThrottleDelayCnt++;
+                InstanceThrottleDelayMS+= delayMS;
+                System.Threading.Thread.Sleep(delayMS);
+            }
+            lock (StaticLockObject)
+            {
+                RecentRqQ.Enqueue(DateTime.Now); 
+            }
+        }
+
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI, HttpContent content)
         {
+            ThrottleRequestsPerSecond();
             DateTime startms = DateTime.Now;
             lock (StaticLockObject) RequestCounter++;
             InstanceRequestCounter++;
@@ -668,20 +818,26 @@ namespace Cloud_Elements_API
             LastFailureInformation = "";
             if ((!response.IsSuccessStatusCode) || (DiagOutputLevel > TraceLevel.NonSuccess))
             {
-                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb,URIForLogging( URI), response.StatusCode, msUsed / 1000.0);
+                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URIForLogging(URI), response.StatusCode, msUsed / 1000.0);
                 if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
                 {
                     Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
                     if (info != null)
                     {
                         Newtonsoft.Json.Linq.JToken msgtoken = info.GetValue("message");
+                        Newtonsoft.Json.Linq.JToken providerMsgtoken = info.GetValue("providerMessage");
                         Newtonsoft.Json.Linq.JToken rqIDtoken = info.GetValue("requestId");
-                        if (rqIDtoken != null)  traceInfo = string.Concat(traceInfo, "; RequestId=", rqIDtoken.ToString());
+                        if (rqIDtoken != null) traceInfo = string.Concat(traceInfo, "; RequestId=", rqIDtoken.ToString());
                         if (msgtoken != null)
                         {
                             traceInfo = string.Concat(traceInfo, " - ", msgtoken.ToString());
                             LastFailureInformation = msgtoken.ToString();
-                            if (rqIDtoken != null) LastFailureInformation = string.Format("{0}; (Request #{1}, ID {2})" , LastFailureInformation, RequestCounter, rqIDtoken.ToString());
+                            if (providerMsgtoken != null)
+                            {
+                                traceInfo = string.Concat(traceInfo, " - ", providerMsgtoken.ToString());
+                                LastFailureInformation = string.Concat(traceInfo, " - ", providerMsgtoken.ToString());
+                            }
+                            if (rqIDtoken != null) LastFailureInformation = string.Format("{0}; (Request #{1}, ID {2})", LastFailureInformation, RequestCounter, rqIDtoken.ToString());
                         }
                     }
                 }
@@ -694,7 +850,7 @@ namespace Cloud_Elements_API
         string URIForLogging(string rawURI)
         {
             if (SimplifyLoggedURIs) rawURI = rawURI.Replace("%2F", "/");
-                return rawURI;
+            return rawURI;
         }
 
         HttpClient NewHttpClient()
@@ -715,6 +871,16 @@ namespace Cloud_Elements_API
 
 
 
+    }
+
+    public class EndpointOptions
+    {
+        public int MaxRqPerSecond;
+        public int RequestsPerSecondWindow;
+        public double HighwaterGeneratedRequestsPerSecond;
+        public DateTime BackoffUntil;          // future:  
+        public bool LogThrottleDelays;
+        public bool LogHighwaterThroughput;
     }
 
     public class Pong

@@ -30,6 +30,7 @@ namespace Cloud_Element_Test_Form
             TestStatusMsg("Testing with " + toolStripTxtConnectionNow.Text);
             string basepath = txtFolderPath.Text;
             SerializeGetFileMetadataRequests = chkSerializeGetFileInfoReq.Checked;
+            APIConnector.EndpointMaxRequestsPerSecond = (int)spnRequestsPerSecond.Value;
 
             if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
             string tfoldername = basepath + "/Cloud Elements API Test Folder";
@@ -261,12 +262,12 @@ namespace Cloud_Element_Test_Form
 
                 AsyncUploadTest = new Task<Task<string>>(UploadTestAction);
                 AsyncUploadTest.Start();
-               AwaitableTestTask  =   AsyncUploadTest.ConfigureAwait(false);
-               FinalAwaitableTestTask = await AwaitableTestTask;
-               info = await FinalAwaitableTestTask;
+                AwaitableTestTask = AsyncUploadTest.ConfigureAwait(false);
+                FinalAwaitableTestTask = await AwaitableTestTask;
+                info = await FinalAwaitableTestTask;
                 TestStatusMsg(info);
                 AsyncUploadPassed = true;
-                
+
                 NumberOfFilesAlreadyUploaded = 8;
             }
             catch (Exception eu)
@@ -278,12 +279,12 @@ namespace Cloud_Element_Test_Form
             if (AsyncUploadPassed)
             {
                 //SEVENTH TEST: repeat Async Uploads
-                  UploadTestAction = new System.Func<Task<string>>(TestMultiFileAsyncUploads);
-                  AsyncUploadTest = new Task<Task<string>>(UploadTestAction) ;
-                  TestStatusMsg("Test: Repeat Multiple ASYNC uploads, without waiting...");
-                  AsyncUploadTest.Start();
-                  AwaitableTestTask = AsyncUploadTest.ConfigureAwait(false);
-                  
+                UploadTestAction = new System.Func<Task<string>>(TestMultiFileAsyncUploads);
+                AsyncUploadTest = new Task<Task<string>>(UploadTestAction);
+                TestStatusMsg("Test: Repeat Multiple ASYNC uploads, without waiting...");
+                AsyncUploadTest.Start();
+                AwaitableTestTask = AsyncUploadTest.ConfigureAwait(false);
+
             }
 
             //EIGHTH TEST: Download File
@@ -339,7 +340,7 @@ namespace Cloud_Element_Test_Form
                 System.Runtime.CompilerServices.ConfiguredTaskAwaitable<Task<string>> AwaitableMetaInfoTask;
                 try
                 {
-                    
+
                     // we need to run away from the UI
                     TestMetaInfoAction = new System.Func<Task<string>>(TestAsyncGetFileMeta);
 
@@ -347,7 +348,7 @@ namespace Cloud_Element_Test_Form
                     AsyncMetaInfoTest.Start();
                     AwaitableMetaInfoTask = AsyncMetaInfoTest.ConfigureAwait(false);
                     FinalAwaitableMetaInfoTask = await AwaitableMetaInfoTask;
-                  
+
 
                 }
                 catch (Exception eu)
@@ -379,19 +380,19 @@ namespace Cloud_Element_Test_Form
             TestStatusMsg("Cleaning up test...");
             string basepath = txtFolderPath.Text;
             if (basepath.EndsWith("/")) { basepath.TrimEnd(new char[] { '/' }); }
-            string tfoldername = basepath +  "/Cloud Elements API Test Folder";
+            string tfoldername = basepath + "/Cloud Elements API Test Folder";
 
             //check for file on disk
             string fn = System.IO.Path.Combine(WorkPath, "SFCE_test_file_1.txt");
             if (System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(fn)))
             {
-               if (System.IO.File.Exists(fn))
-                   {
-                       System.IO.File.Delete(fn);
-                       TestStatusMsg("Downloaded test file deleted");
-                   }
+                if (System.IO.File.Exists(fn))
+                {
+                    System.IO.File.Delete(fn);
+                    TestStatusMsg("Downloaded test file deleted");
+                }
             }
-            
+
 
             //check for folder
             try
@@ -440,7 +441,7 @@ namespace Cloud_Element_Test_Form
 
 
         int DownloadTestExpectedHash;
-        int NumberOfFilesAlreadyUploaded=0;
+        int NumberOfFilesAlreadyUploaded = 0;
         bool SerializeGetFileMetadataRequests = true;
         string AsyncBasePath;
 
@@ -448,7 +449,7 @@ namespace Cloud_Element_Test_Form
         {
             string tfoldername = AsyncBasePath; // set at start of tests
             System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>> UploadTasks = new System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>>();
-            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>() ;
+            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>();
 
 
             DateTime Started = DateTime.Now;
@@ -476,7 +477,7 @@ namespace Cloud_Element_Test_Form
 
                 UploadTasks.Enqueue(AnUpload);
                 uploadCount += 1;
-                 
+
             }
 
             int rewaitCnt = 0;
@@ -531,7 +532,7 @@ namespace Cloud_Element_Test_Form
         {
             string tfoldername = AsyncBasePath; // as set at start of tests
             System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>> MetaTasks = new System.Collections.Generic.Queue<Task<Cloud_Elements_API.CloudFile>>();
-            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>() ;
+            System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector> ConnectorsUsed = new System.Collections.Generic.List<Cloud_Elements_API.CloudElementsConnector>();
             DateTime Started = DateTime.Now;
             int MetaCount = 0;
             for (int rr = 1; rr <= 4; rr++)
@@ -560,12 +561,16 @@ namespace Cloud_Element_Test_Form
                     try
                     {
                         Cloud_Elements_API.CloudFile Result = await AnUpload;
-                        Summary.AppendFormat("\t{5}: Task {2} File Info for {0}, id={1}, ok={3} \r\n", Result.name, Result.id, AnUpload.Id, !AnUpload.IsFaulted,
-                                                0, Cloud_Elements_API.Tools.TraceTimeNow());
+                        if (Result != null)
+                            Summary.AppendFormat("\t{5}: Task {2} File Info for {0}, id={1}, ok={3} \r\n", Result.name, Result.id, AnUpload.Id, !AnUpload.IsFaulted,
+                                                    0, Cloud_Elements_API.Tools.TraceTimeNow());
+                        else Summary.AppendFormat("\t{5}: Task {2} did not obtain file Info for {0}, id={1}, ok={3} \r\n", "", "", AnUpload.Id, !AnUpload.IsFaulted,
+                                                    0, Cloud_Elements_API.Tools.TraceTimeNow());
+
                     }
                     catch (Exception ex)
                     {
-                        Summary.AppendFormat("\t{5}: Task {2} File Info Exception {0}, ok={3} \r\n", ex.Message , 0, AnUpload.Id, !AnUpload.IsFaulted,
+                        Summary.AppendFormat("\t{5}: Task {2} File Info Exception {0}, ok={3} \r\n", ex.Message, 0, AnUpload.Id, !AnUpload.IsFaulted,
                                                 0, Cloud_Elements_API.Tools.TraceTimeNow());
 
                     }

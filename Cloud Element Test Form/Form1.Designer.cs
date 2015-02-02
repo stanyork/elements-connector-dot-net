@@ -99,6 +99,8 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.spnRequestsPerSecond = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -110,6 +112,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.tpLog.SuspendLayout();
             this.tpTest.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.spnRequestsPerSecond)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -646,6 +649,8 @@
             // 
             // tpTest
             // 
+            this.tpTest.Controls.Add(this.label5);
+            this.tpTest.Controls.Add(this.spnRequestsPerSecond);
             this.tpTest.Controls.Add(this.chkSerializeGetFileInfoReq);
             this.tpTest.Controls.Add(this.cmdForceClean);
             this.tpTest.Controls.Add(this.chkAutoSaveLog);
@@ -763,6 +768,43 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
+            // spnRequestsPerSecond
+            // 
+            this.spnRequestsPerSecond.Increment = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.spnRequestsPerSecond.Location = new System.Drawing.Point(418, 33);
+            this.spnRequestsPerSecond.Maximum = new decimal(new int[] {
+            128,
+            0,
+            0,
+            0});
+            this.spnRequestsPerSecond.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            -2147483648});
+            this.spnRequestsPerSecond.Name = "spnRequestsPerSecond";
+            this.spnRequestsPerSecond.Size = new System.Drawing.Size(50, 20);
+            this.spnRequestsPerSecond.TabIndex = 9;
+            this.spnRequestsPerSecond.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.spnRequestsPerSecond.Value = new decimal(new int[] {
+            32,
+            0,
+            0,
+            0});
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(474, 37);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(103, 13);
+            this.label5.TabIndex = 10;
+            this.label5.Text = "requests per second";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -793,6 +835,7 @@
             this.tpLog.PerformLayout();
             this.tpTest.ResumeLayout(false);
             this.tpTest.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.spnRequestsPerSecond)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -869,6 +912,8 @@
         private System.Windows.Forms.Button cmdForceClean;
         private System.Windows.Forms.ToolStripMenuItem getMetadataByPathToolStripMenuItem;
         private System.Windows.Forms.CheckBox chkSerializeGetFileInfoReq;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown spnRequestsPerSecond;
     }
 }
 
