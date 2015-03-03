@@ -26,7 +26,7 @@ namespace Cloud_Elements_API
 
 
         /// <summary>
-        /// Obtains information about a cloud file by ID or path; returns NULL 
+        /// Obtains information about a cloud file by ID or path; returns NULL for not found
         /// </summary>
         /// <param name="connector">connection to use</param>
         /// <param name="specType">specifies format of supplied file specification</param>
@@ -92,7 +92,29 @@ namespace Cloud_Elements_API
             return targetFile;
         }
 
+        /// <summary>
+        /// Returns SHA1, if available 
+        /// </summary>
+        /// <returns></returns>
+        public static string SHA1(CloudElementsConnector connector, CloudFile targetFile)
+        {
+            if (!targetFile.HasRaw) return string.Empty;
+            if (!connector.EndpointOptions.HasFileHashAlgorithm) return string.Empty;
+            Newtonsoft.Json.Linq.JToken valueToken = targetFile.raw.GetValue("sha1");
+            if (valueToken == null) return string.Empty;
+            return valueToken.ToString();
+        }
 
+        /// <summary>
+        /// Returns email address of last file writer, if available
+        /// </summary>
+        /// <returns></returns>
+        public static string LastWrittenBy(CloudElementsConnector connector, CloudFile targetFile)
+        {
+            if (!targetFile.HasRaw) return string.Empty;
+            if (!connector.EndpointOptions.HasModifiedBy) return string.Empty;
+            return targetFile.RawValue(connector.EndpointOptions.ModifiedByRawIDPath);
+        }
 
     }
 }

@@ -61,6 +61,9 @@ namespace Cloud_Elements_API
             }
         }
 
+        /// <summary>
+        /// Returns max requests per second to the current endpoint
+        /// </summary>
         public int EndpointMaxRequestsPerSecond
         {
             get
@@ -70,7 +73,7 @@ namespace Cloud_Elements_API
                 {
                     if (EndpointSettings.ContainsKey(Endpoint))
                     {
-                        EndpointOptions options = new EndpointOptions();
+                        EndpointOptions options = EndpointSettings[Endpoint];
                         result = options.MaxRqPerSecond;
                     }
                 }
@@ -84,6 +87,39 @@ namespace Cloud_Elements_API
                     EndpointOptions options = EndpointSettings[Endpoint];
                     options.MaxRqPerSecond = value;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns the time when the last 'rate exceeded' result was detected by the connector
+        /// </summary>
+        public DateTime WhenRateLastExceeded
+        {
+            get
+            {
+                DateTime result = DateTime.MinValue;
+                if (EndpointSettings.ContainsKey(Endpoint))
+                {
+                    EndpointOptions options = EndpointSettings[Endpoint];
+                    result = options.LastRateExceeded;
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Returns the current endpoint options in use by this connector
+        /// </summary>
+        public EndpointOptions EndpointOptions
+        {
+            get
+            {
+                EndpointOptions result = null;
+                if (EndpointSettings.ContainsKey(Endpoint))
+                {
+                    result = EndpointSettings[Endpoint];
+                }
+                return result;
             }
         }
 
@@ -156,6 +192,11 @@ namespace Cloud_Elements_API
                         case "box":
                             options.MaxRqPerSecond = 6;
                             options.LogHighwaterThroughput = true;
+                            options.FileHashAlgorithmName = "SHA1";
+                            options.ModifiedByRawIDPath = "modified_by.login";
+                            break;
+                        case "googledrive":
+                            options.ModifiedByRawIDPath = "lastModifyingUser.emailAddress";
                             break;
                         default:
                             options.MaxRqPerSecond = 32;
@@ -238,7 +279,7 @@ namespace Cloud_Elements_API
         /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
         /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
         /// <returns></returns>
-        public async Task<CloudFile> GetDocEntryMetaData(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier)
+        public async Task<CloudFile> GetDocEntryMetaData(DirectoryEntryType entryType, FileSpecificationType fileSpecType, string identifier, bool withRaw)
         {
             CloudFile Result;
             HttpResponseMessage response;
@@ -248,15 +289,15 @@ namespace Cloud_Elements_API
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL = "hubs/documents/{1}/{0}/metadata";
+                    RequestURL = "hubs/documents/{1}/{0}/metadata?raw={2}";
                     break;
                 case FileSpecificationType.Path:
-                    RequestURL = "hubs/documents/{1}/metadata?path={0}";
+                    RequestURL = "hubs/documents/{1}/metadata?path={0}&raw={2}";
                     break;
                 default:
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
-            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType,withRaw);
             response = await APIExecuteGet(RequestURL);
             Result = await response.Content.ReadAsAsync<CloudFile>();
             return Result;
@@ -415,7 +456,7 @@ namespace Cloud_Elements_API
         public async Task<CloudFile> GetFolderMetaData(FileSpecificationType fileSpecType, string identifier)
         {
             CloudFile Result;
-            Result = await GetDocEntryMetaData(DirectoryEntryType.Folder, fileSpecType, identifier);
+            Result = await GetDocEntryMetaData(DirectoryEntryType.Folder, fileSpecType, identifier,true);
             return Result;
         }
 
@@ -510,23 +551,7 @@ namespace Cloud_Elements_API
         /// <returns></returns>
         public async Task<CloudFile> GetFileMetaData(FileSpecificationType fileSpecType, string identifier)
         {
-            CloudFile Result;
-            HttpResponseMessage response;
-            string RequestURL;
-            switch (fileSpecType)
-            {
-                case FileSpecificationType.ID:
-                    RequestURL = string.Format("hubs/documents/files/{0}/metadata", System.Net.WebUtility.UrlEncode(identifier));
-                    break;
-                case FileSpecificationType.Path:
-                    RequestURL = string.Format("hubs/documents/files/metadata?path={0}", System.Net.WebUtility.UrlEncode(identifier));
-                    break;
-                default:
-                    throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
-            }
-            response = await APIExecuteGet(RequestURL);
-            Result = await response.Content.ReadAsAsync<CloudFile>();
-            return Result;
+            return await GetDocEntryMetaData(DirectoryEntryType.File, fileSpecType, identifier, true);
         }
 
         /// <summary>
@@ -857,11 +882,12 @@ namespace Cloud_Elements_API
                                     if (EndpointSettings.ContainsKey(Endpoint))
                                     {
                                         options = EndpointSettings[Endpoint];
+                                        options.LastRateExceeded = DateTime.Now;
                                         if ((options.MaxRqPerSecond <= 0) || (options.MaxRqPerSecond > options.HighwaterGeneratedRequestsPerSecond)) options.MaxRqPerSecond = (int)options.HighwaterGeneratedRequestsPerSecond;
                                         if ((options.MaxRqPerSecond > 2) && (DateTime.Now.Subtract(options.LastAutoLimit).TotalSeconds > 1))
                                         {
                                             options.MaxRqPerSecond--;
-                                            options.LastAutoLimit = DateTime.Now;
+                                            options.LastAutoLimit = options.LastRateExceeded;
                                             OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
                                         }
                                     }
@@ -930,11 +956,45 @@ namespace Cloud_Elements_API
             get { return _LastAutoLimit; }
             internal set { _LastAutoLimit = value; }
         }
+        public DateTime LastRateExceeded
+        {
+            get { return _LastRateExceeded; }
+            internal set { _LastRateExceeded = value; }
+        }
+
+        public bool HasFileHashAlgorithm
+        {
+            get { return ((_FileHashCyproName != null) && (_FileHashCyproName.Length > 0)); }
+             
+        }
+
+        public bool HasModifiedBy
+        {
+            get { return ((_ModifiedByRawPath != null) && (_ModifiedByRawPath.Length > 0)); }
+
+        }
+
+        public string FileHashAlgorithmName
+        {
+            get { return _FileHashCyproName; }
+            internal set { _FileHashCyproName = value; }
+        }
+
+        protected internal string ModifiedByRawIDPath
+        {
+              get { return _ModifiedByRawPath; }
+              set { _ModifiedByRawPath = value; }
+        }
+
+
         public bool LogThrottleDelays;
         public bool LogHighwaterThroughput;
 
         private double _HighwaterGeneratedRequestsPerSecond;
         private DateTime _LastAutoLimit;
+        private DateTime _LastRateExceeded;
+        private string _FileHashCyproName;
+        private string _ModifiedByRawPath;
 
     }
 

@@ -16,10 +16,15 @@ namespace Cloud_Elements_API
         public string modifiedDate { get; set; }    // optional
         public string id { get; set; }              // optional
         public Boolean directory { get; set; }      // optional
+        public Newtonsoft.Json.Linq.JObject raw { get; set; }               // optional
 
 
         [Newtonsoft.Json.JsonIgnore]
         public Boolean HasTags { get { return ((tags != null) && (tags.Length > 0)); } }
+
+        [Newtonsoft.Json.JsonIgnore]
+        public Boolean HasRaw { get { return ((raw != null)) ; } }
+
 
         [Newtonsoft.Json.JsonIgnore]
         public Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType EntryType
@@ -65,6 +70,25 @@ namespace Cloud_Elements_API
             return (_WhenModified);
         }
 
+         public string RawValue(string valuePath)
+        {
+            string[] pathPart = valuePath.Split('.');
+            if (pathPart.GetUpperBound(0) < 1) return string.Empty;
+            Newtonsoft.Json.Linq.JToken valueToken = raw.GetValue(pathPart[0]);
+            if (valueToken == null) return string.Empty;
+            for (int i = 1; i < pathPart.GetUpperBound(0) - 1; i++)
+            {
+                if (!valueToken.HasValues) return string.Empty;
+                if (!(valueToken is Newtonsoft.Json.Linq.JObject)) return string.Empty;
+                valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[i]);
+                if (valueToken == null) return string.Empty;
+            }
+            
+            valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[pathPart.GetUpperBound(0)]);
+            if (valueToken == null) return string.Empty;
+            return valueToken.ToString();
+         }
+       
 
         /// <summary>
         /// Adds a tag to the tag collection with support for Key-Value pair tags (name=value)

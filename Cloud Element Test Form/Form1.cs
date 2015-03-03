@@ -518,7 +518,7 @@ namespace Cloud_Element_Test_Form
             if (!chkWithTags.Checked || !currentRow.HasTags)
             {
                 StatusMsg("Getting current Tag(s).... ");
-                currentRow = await APIConnector.GetDocEntryMetaData(currentRow.EntryType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id);
+                currentRow = await APIConnector.GetDocEntryMetaData(currentRow.EntryType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id,false);
             }
 
             StatusMsg("Storing Tag: " + TagToSet);
@@ -579,7 +579,8 @@ namespace Cloud_Element_Test_Form
                 if (CloudFileInfoByPath == null) StatusMsg("Nothing Returned!  (not expecting not found)");
                 else
                 {
-                    StatusMsg(string.Format("OK: ID is {0}", CloudFileInfoByPath.id));
+                    StatusMsg(string.Format("OK: ID is {0}, by [{2}], hash {1}", CloudFileInfoByPath.id, Cloud_Elements_API.FileOperations.SHA1(APIConnector, CloudFileInfoByPath),
+                        Cloud_Elements_API.FileOperations.LastWrittenBy(APIConnector, CloudFileInfoByPath)));
                 }
             }
             catch (Exception ex)

@@ -229,5 +229,30 @@ namespace Cloud_Elements_API
         }
 
 
+        /// <summary>
+        /// Returns a digest (hash) of the stream.  
+        /// </summary>
+        /// <param name="inStream"></param>
+        /// <param name="useCrypto">MD5,SHA1, SHA256, SHA512 (etc)</param>
+        /// <returns></returns>
+        public static string HashForBuffer(System.IO.Stream inStream, string useCrypto)
+        {
+            System.Security.Cryptography.HashAlgorithm viaCrypto = default(System.Security.Cryptography.HashAlgorithm);
+            try
+            {
+                viaCrypto = (System.Security.Cryptography.HashAlgorithm)System.Security.Cryptography.CryptoConfig.CreateFromName(useCrypto.ToUpper());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("{0}: <#> {1}({3}) - {2}; Check crypto name", DateTime.Now.ToString(TraceTimeFormat), "HashForBuffer", ex.ToString(), useCrypto);
+                throw ex;
+            }
+            Byte[] hashedBytes = viaCrypto.ComputeHash(inStream);
+            string hashedText = BitConverter.ToString(hashedBytes).Replace("-", "");
+            return hashedText;
+        }
+
+
+
     }
 }
