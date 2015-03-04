@@ -166,7 +166,7 @@ namespace Cloud_Elements_API
         #endregion
 
         /// <summary>
-        /// Test the endpoint and sets the endpoint type, enablig endpoint-specific options such as rate throttling
+        /// Test the endpoint and sets the endpoint type, enabling endpoint-specific options such as rate throttling
         /// </summary>
         /// <returns></returns>
         public async Task<Pong> Ping()
@@ -187,6 +187,7 @@ namespace Cloud_Elements_API
                     EndpointOptions options = new EndpointOptions();
                     options.LogThrottleDelays = false;
                     options.RequestsPerSecondWindow = 3;
+                    options.EndpointType = endpointName;
                     switch (endpointName)
                     {
                         case "box":
@@ -197,6 +198,7 @@ namespace Cloud_Elements_API
                             break;
                         case "googledrive":
                             options.ModifiedByRawIDPath = "lastModifyingUser.emailAddress";
+                            options.MaxRqPerSecond = 32;
                             break;
                         default:
                             options.MaxRqPerSecond = 32;
@@ -974,6 +976,12 @@ namespace Cloud_Elements_API
 
         }
 
+        public string EndpointType
+        {
+            get { return _EndpointType; }
+            internal set { _EndpointType = value; }
+        }
+
         public string FileHashAlgorithmName
         {
             get { return _FileHashCyproName; }
@@ -995,6 +1003,7 @@ namespace Cloud_Elements_API
         private DateTime _LastRateExceeded;
         private string _FileHashCyproName;
         private string _ModifiedByRawPath;
+        private string _EndpointType;
 
     }
 
