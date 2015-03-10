@@ -73,18 +73,20 @@ namespace Cloud_Elements_API
          public string RawValue(string valuePath)
         {
             string[] pathPart = valuePath.Split('.');
-            if (pathPart.GetUpperBound(0) < 1) return string.Empty;
+            if (pathPart.GetUpperBound(0) < 0) return string.Empty;
             Newtonsoft.Json.Linq.JToken valueToken = raw.GetValue(pathPart[0]);
-            if (valueToken == null) return string.Empty;
-            for (int i = 1; i < pathPart.GetUpperBound(0) - 1; i++)
+            if (pathPart.GetUpperBound(0) > 0)
             {
-                if (!valueToken.HasValues) return string.Empty;
-                if (!(valueToken is Newtonsoft.Json.Linq.JObject)) return string.Empty;
-                valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[i]);
-                if (valueToken == null) return string.Empty;
+                for (int i = 1; i <= pathPart.GetUpperBound(0) - 1; i++)
+                {
+                    if (!valueToken.HasValues) return string.Empty;
+                    if (!(valueToken is Newtonsoft.Json.Linq.JObject)) return string.Empty;
+                    valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[i]);
+                    if (valueToken == null) return string.Empty;
+                }
+
+                valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[pathPart.GetUpperBound(0)]);
             }
-            
-            valueToken = ((Newtonsoft.Json.Linq.JObject)valueToken).GetValue(pathPart[pathPart.GetUpperBound(0)]);
             if (valueToken == null) return string.Empty;
             return valueToken.ToString();
          }

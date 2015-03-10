@@ -379,6 +379,11 @@ namespace Cloud_Element_Test_Form
                 Cloud_Elements_API.Tools.Progress += Tools_Progress;
                 await Cloud_Elements_API.Tools.StreamCopyWithProgress(Result.ContentStream, Target, Result.ContentLength);
                 Result.ContentStream.Close();
+                Target.Seek(0, System.IO.SeekOrigin.Begin);
+
+                StatusMsg(string.Format("Downloaded content for {1}: MD5={0}", Cloud_Elements_API.Tools.HashForBuffer(Target, "MD5"), System.IO.Path.GetFileName(fn)));
+                Target.Seek(0, System.IO.SeekOrigin.Begin);
+                StatusMsg(string.Format("Downloaded content for {1}: SHA1={0}", Cloud_Elements_API.Tools.HashForBuffer(Target, "SHA1"), System.IO.Path.GetFileName(fn)));
                 Target.Close();
                 Cloud_Elements_API.Tools.Progress -= Tools_Progress;
                 StatusMsg(string.Format("Stored {1}: {0}", Cloud_Elements_API.Tools.SizeInBytesToString(Result.ContentLength), System.IO.Path.GetFileName(fn)));
@@ -579,7 +584,7 @@ namespace Cloud_Element_Test_Form
                 if (CloudFileInfoByPath == null) StatusMsg("Nothing Returned!  (not expecting not found)");
                 else
                 {
-                    StatusMsg(string.Format("OK: ID is {0}, by [{2}], hash {1}", CloudFileInfoByPath.id, Cloud_Elements_API.FileOperations.SHA1(APIConnector, CloudFileInfoByPath),
+                    StatusMsg(string.Format("OK: ID is {0}, by [{2}], hash {1}", CloudFileInfoByPath.id, Cloud_Elements_API.FileOperations.ContentHash(APIConnector, CloudFileInfoByPath),
                         Cloud_Elements_API.FileOperations.LastWrittenBy(APIConnector, CloudFileInfoByPath)));
                 }
             }

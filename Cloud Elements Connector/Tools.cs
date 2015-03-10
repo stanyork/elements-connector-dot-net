@@ -102,7 +102,12 @@ namespace Cloud_Elements_API
         public static string FileTypeToMimeContentType(string fileType)
         {
             if (!fileType.StartsWith(".")) fileType = "." + fileType;
-            return (string)Microsoft.Win32.Registry.GetValue(@"HKEY_CLASSES_ROOT\" + fileType, "Content Type", null);
+            string ContentType = (string)Microsoft.Win32.Registry.GetValue(@"HKEY_CLASSES_ROOT\" + fileType, "Content Type", null);
+            if (ContentType == null) {
+                ContentType = GetContentTypeForExt(fileType);
+            }
+
+            return ContentType;
         }
 
 
@@ -253,6 +258,177 @@ namespace Cloud_Elements_API
         }
 
 
+        private static string GetContentTypeForExt(string FileExt)
+        {
+            string ContentType = null;
+            if (FileExt.StartsWith(".")) FileExt = FileExt.Substring(1);
+            switch (FileExt.ToLower())
+            {
+                case "pdf":
+                    ContentType = "application/pdf";
+
+                    break;
+                case "utf":
+                    ContentType = "text/plain; charset=unicode-1-1";
+
+                    break;
+                case "zip":
+                    ContentType = "application/zip";
+
+                    break;
+                case "htm":
+                case "html":
+                    ContentType = "text/html";
+
+                    break;
+                case "txt":
+                    ContentType = "text/plain";
+
+                    break;
+                case "doc":
+                    ContentType = "application/msword";
+
+                    break;
+                case "rtf":
+                    ContentType = "application/rtf";
+
+                    break;
+                case "ppt":
+                    ContentType = "application/vnd.ms-powerpoint";
+
+                    break;
+                case "pptx":
+                case "ppts":
+                    ContentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+
+                    break;
+                case "csv":
+                    ContentType = "application/vnd.ms-excel";
+
+                    break;
+                case "xls":
+                    ContentType = "application/vnd.ms-excel";
+
+                    break;
+                case "xsl":
+                case "xml":
+                case "wsdl":
+                    ContentType = "text/xml";
+
+                    break;
+                case "spm":
+                case "spml":
+
+                    ContentType = "text/html";
+
+                    break;
+                case "gif":
+                    ContentType = "image/gif";
+
+                    break;
+                case "jpg":
+                case "jpeg":
+                    ContentType = "image/jpeg";
+
+                    break;
+                case "png":
+                    ContentType = "image/png";
+
+                    break;
+                case "ps":
+                    ContentType = "application/postscript";
+
+                    break;
+                case "tif":
+                case "tiff":
+                    ContentType = "image/tiff";
+
+                    break;
+                case "xbm":
+                    ContentType = "image/x-xbitmap";
+
+                    break;
+                case "log":
+                    ContentType = "text/plain";
+
+                    break;
+                case "dcr":
+                    ContentType = "application/x-director";
+
+                    break;
+                case "wav":
+                    ContentType = "audio/x-wav";
+
+                    break;
+                case "au":
+                    ContentType = "audio/basic";
+
+                    break;
+                case "class":
+                case "cls":
+                case "exe":
+                case "dll":
+                    ContentType = "application/octet-stream";
+
+                    break;
+                case "pict":
+                    ContentType = "application/image/x-macpict";
+
+                    break;
+                case "mp4":
+                    ContentType = "video/mp4";
+
+                    break;
+                case "mpg":
+                case "mpeg":
+                    ContentType = "video/mpeg";
+
+                    break;
+                case "moov":
+                case "mov":
+                    ContentType = "video/quicktime";
+
+                    break;
+                case "svg":
+                case "svgz":
+                    ContentType = "image/svg+xml";
+
+                    break;
+                case "wml":
+                    ContentType = "text/vnd.wap.wml";
+
+                    break;
+                case "wmlc":
+                    ContentType = "application/vnd.wap.wmlc";
+
+                    break;
+                case "wmls":
+                    ContentType = "text/vnd.wap.wmls";
+
+                    break;
+                case "wmlscriptc":
+                    ContentType = "application/vnd.wap.wmlscriptc";
+
+                    break;
+                case "wbmp":
+                    ContentType = "image/vnd.wap.wbmp";
+
+                    break;
+                case "jad":
+                    ContentType = "text/vnd.sun.j2me.app-descriptor";
+
+                    break;
+                case "jar":
+                    ContentType = "application/java-archive";
+
+                    break;
+                default:
+                    ContentType = "application/binary";
+                    break;
+            }
+            return ContentType;
+        }
+         
 
     }
 }

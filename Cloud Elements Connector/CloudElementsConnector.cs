@@ -190,10 +190,15 @@ namespace Cloud_Elements_API
                     options.EndpointType = endpointName;
                     switch (endpointName)
                     {
+                        case "amazons3":
+                            options.FileHashAlgorithmName = "MD5";
+                            options.FileHashRawIDPath = "objectMetadata.rawMetadata.ETag";
+                            break;
                         case "box":
                             options.MaxRqPerSecond = 6;
                             options.LogHighwaterThroughput = true;
                             options.FileHashAlgorithmName = "SHA1";
+                            options.FileHashRawIDPath = "sha1";
                             options.ModifiedByRawIDPath = "modified_by.login";
                             break;
                         case "googledrive":
@@ -988,6 +993,12 @@ namespace Cloud_Elements_API
             internal set { _FileHashCyproName = value; }
         }
 
+        protected internal string FileHashRawIDPath
+        {
+            get { return _FileHashRawIDPath; }
+            set { _FileHashRawIDPath = value; }
+        }
+
         protected internal string ModifiedByRawIDPath
         {
               get { return _ModifiedByRawPath; }
@@ -1003,6 +1014,7 @@ namespace Cloud_Elements_API
         private DateTime _LastRateExceeded;
         private string _FileHashCyproName;
         private string _ModifiedByRawPath;
+        private string _FileHashRawIDPath;
         private string _EndpointType;
 
     }

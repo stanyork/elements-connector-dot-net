@@ -96,11 +96,11 @@ namespace Cloud_Elements_API
         /// Returns SHA1, if available 
         /// </summary>
         /// <returns></returns>
-        public static string SHA1(CloudElementsConnector connector, CloudFile targetFile)
+        public static string ContentHash(CloudElementsConnector connector, CloudFile targetFile)
         {
             if (!targetFile.HasRaw) return string.Empty;
             if (!connector.EndpointOptions.HasFileHashAlgorithm) return string.Empty;
-            Newtonsoft.Json.Linq.JToken valueToken = targetFile.raw.GetValue("sha1");
+            Newtonsoft.Json.Linq.JToken valueToken = targetFile.RawValue(connector.EndpointOptions.FileHashRawIDPath); // targetFile.raw.GetValue("sha1");
             if (valueToken == null) return string.Empty;
             return valueToken.ToString();
         }
