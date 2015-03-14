@@ -474,7 +474,7 @@ namespace Cloud_Element_Test_Form
                     }
 
                     StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                    Cloud_Elements_API.CloudFile Result = await APIConnector.DeleteFolder(currentRow.path, false);
+                   bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
                 }
                 else
                 {

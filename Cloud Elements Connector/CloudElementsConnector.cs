@@ -446,11 +446,37 @@ namespace Cloud_Elements_API
 
         }
 
-        public async Task<CloudFile> DeleteFolder(string path, Boolean withTrash)
+        
+
+        /// <summary>
+        /// Deletes a specific folder from the cloud service   
+        /// </summary>
+        /// <param name="fileSpecType">Specifies if the identifier is an ID or a PATH</param>
+        /// <param name="identifier">Specifying an ID that does not exist results in an error response.</param>
+        /// <param name="emptyTrash">true also empties trash</param>
+        /// <returns></returns>
+        /// <remarks>Specifying a file associated with an ID that does not exist results in an error response.</remarks>
+        public async Task<bool> DeleteFolder(FileSpecificationType fileSpecType, string identifier, bool emptyTrash)
         {
-            HttpResponseMessage response = await APIExecuteDelete(string.Format("hubs/documents/folders?path={0}&emptyTrash={1}", System.Net.WebUtility.UrlEncode(path), withTrash));
-            CloudFile ResultList = await response.Content.ReadAsAsync<CloudFile>();
-            return ResultList;
+            bool Result;
+            HttpResponseMessage response;
+            string RequestURL;
+
+            switch (fileSpecType)
+            {
+                case FileSpecificationType.ID:
+                    RequestURL = "hubs/documents/folders/{0}?emptyTrash={1}";
+                    break;
+                case FileSpecificationType.Path:
+                    RequestURL = "hubs/documents/folders?path={0}&emptyTrash={1}";
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
+            }
+
+            response = await APIExecuteDelete(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            Result = true;
+            return Result;
         }
 
 

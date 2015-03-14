@@ -402,7 +402,7 @@ namespace Cloud_Element_Test_Form
                 //if exists, delete
                 try
                 {
-                    Cloud_Elements_API.CloudFile Result = await APIConnector.DeleteFolder(tfoldername, false);
+                    bool Result = await APIConnector.DeleteFolder( Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path ,  tfoldername, false);
                     TestStatusMsg("Test folder deleted");
                 }
                 catch (Exception e)
