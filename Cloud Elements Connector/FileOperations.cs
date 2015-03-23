@@ -36,20 +36,36 @@ namespace Cloud_Elements_API
                                                                CloudElementsConnector.FileSpecificationType specType,
                                                               string requestFilePath)
         {
-            CloudFile CloudFileInfo;
+            return await GetCloudObjectInfo(connector, CloudElementsConnector.DirectoryEntryType.File,specType,requestFilePath);
+        }
+
+        /// <summary>
+        /// Obtains information about a cloud file or folder by ID or path; returns NULL for not found
+        /// </summary>
+        /// <param name="connector">connection to use</param>
+        /// <param name="objectType">specifies file or folder</param>
+        /// <param name="specType">specifies format of supplied specification (id or path)</param>
+        /// <param name="request">file or folder specification</param>
+        /// <returns>null if file not found (404)</returns>
+        public static async Task<CloudFile> GetCloudObjectInfo(CloudElementsConnector connector,
+                                                                CloudElementsConnector.DirectoryEntryType objectType, 
+                                                               CloudElementsConnector.FileSpecificationType specType,
+                                                              string request)
+        {
+            CloudFile CloudObjectInfo;
             try
             {
-                CloudFileInfo = await connector.GetFileMetaData(specType, requestFilePath);
+                CloudObjectInfo = await connector.GetDocEntryMetaData(objectType, specType, request, true);
             }
             catch (System.Net.Http.HttpRequestException hx)
             {
                 if (hx.Message.IndexOf("404") > 0)
                 {
-                    CloudFileInfo = null;
+                    CloudObjectInfo = null;
                 }
                 else throw hx;
             }
-            return CloudFileInfo;
+            return CloudObjectInfo;
         }
 
 
