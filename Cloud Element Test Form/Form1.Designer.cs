@@ -88,6 +88,8 @@
             this.tpLog = new System.Windows.Forms.TabPage();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.tpTest = new System.Windows.Forms.TabPage();
+            this.label5 = new System.Windows.Forms.Label();
+            this.spnRequestsPerSecond = new System.Windows.Forms.NumericUpDown();
             this.chkSerializeGetFileInfoReq = new System.Windows.Forms.CheckBox();
             this.cmdForceClean = new System.Windows.Forms.Button();
             this.chkAutoSaveLog = new System.Windows.Forms.CheckBox();
@@ -99,8 +101,7 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.spnRequestsPerSecond = new System.Windows.Forms.NumericUpDown();
-            this.label5 = new System.Windows.Forms.Label();
+            this.cmdGetID = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -379,6 +380,7 @@
             // 
             // tpContents
             // 
+            this.tpContents.Controls.Add(this.cmdGetID);
             this.tpContents.Controls.Add(this.btnGetPriorFolder);
             this.tpContents.Controls.Add(this.chkWithTags);
             this.tpContents.Controls.Add(this.dgFolderContents);
@@ -666,6 +668,43 @@
             this.tpTest.Text = "Test";
             this.tpTest.UseVisualStyleBackColor = true;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(474, 37);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(103, 13);
+            this.label5.TabIndex = 10;
+            this.label5.Text = "requests per second";
+            // 
+            // spnRequestsPerSecond
+            // 
+            this.spnRequestsPerSecond.Increment = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.spnRequestsPerSecond.Location = new System.Drawing.Point(418, 33);
+            this.spnRequestsPerSecond.Maximum = new decimal(new int[] {
+            128,
+            0,
+            0,
+            0});
+            this.spnRequestsPerSecond.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            -2147483648});
+            this.spnRequestsPerSecond.Name = "spnRequestsPerSecond";
+            this.spnRequestsPerSecond.Size = new System.Drawing.Size(50, 20);
+            this.spnRequestsPerSecond.TabIndex = 9;
+            this.spnRequestsPerSecond.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.spnRequestsPerSecond.Value = new decimal(new int[] {
+            32,
+            0,
+            0,
+            0});
+            // 
             // chkSerializeGetFileInfoReq
             // 
             this.chkSerializeGetFileInfoReq.AutoSize = true;
@@ -768,42 +807,19 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // spnRequestsPerSecond
+            // cmdGetID
             // 
-            this.spnRequestsPerSecond.Increment = new decimal(new int[] {
-            2,
-            0,
-            0,
-            0});
-            this.spnRequestsPerSecond.Location = new System.Drawing.Point(418, 33);
-            this.spnRequestsPerSecond.Maximum = new decimal(new int[] {
-            128,
-            0,
-            0,
-            0});
-            this.spnRequestsPerSecond.Minimum = new decimal(new int[] {
-            2,
-            0,
-            0,
-            -2147483648});
-            this.spnRequestsPerSecond.Name = "spnRequestsPerSecond";
-            this.spnRequestsPerSecond.Size = new System.Drawing.Size(50, 20);
-            this.spnRequestsPerSecond.TabIndex = 9;
-            this.spnRequestsPerSecond.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.spnRequestsPerSecond.Value = new decimal(new int[] {
-            32,
-            0,
-            0,
-            0});
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(474, 37);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(103, 13);
-            this.label5.TabIndex = 10;
-            this.label5.Text = "requests per second";
+            this.cmdGetID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdGetID.Enabled = false;
+            this.cmdGetID.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
+            this.cmdGetID.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cmdGetID.Location = new System.Drawing.Point(706, 6);
+            this.cmdGetID.Name = "cmdGetID";
+            this.cmdGetID.Size = new System.Drawing.Size(75, 35);
+            this.cmdGetID.TabIndex = 9;
+            this.cmdGetID.Text = " ID";
+            this.cmdGetID.UseVisualStyleBackColor = true;
+            this.cmdGetID.Click += new System.EventHandler(this.cmdGetID_Click);
             // 
             // Form1
             // 
@@ -914,6 +930,7 @@
         private System.Windows.Forms.CheckBox chkSerializeGetFileInfoReq;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown spnRequestsPerSecond;
+        private System.Windows.Forms.Button cmdGetID;
     }
 }
 

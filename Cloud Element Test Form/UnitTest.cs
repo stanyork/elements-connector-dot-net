@@ -154,9 +154,16 @@ namespace Cloud_Element_Test_Form
                 Cloud_Elements_API.CloudFile currentRow = TestFileStore;
                 DateTime Started = DateTime.Now;
                 Cloud_Elements_API.CloudFile Result = await Cloud_Elements_API.FileOperations.Copy(APIConnector, currentRow, CopyFileName);
-                CopyRequiredMS = DateTime.Now.Subtract(Started).TotalMilliseconds;
-                TestStatusMsg(string.Format("Copied [{0}] to {1}", currentRow.name, Result.path));
-                if (UploadRequiredMS > 0) TestStatusMsg(string.Format("Comparison: Upload {0:F1}ms; Copy {1:F1}ms; Pct {2:P2} ", UploadRequiredMS, CopyRequiredMS, CopyRequiredMS / UploadRequiredMS));
+                if (Result == null)
+                {
+                    TestStatusMsg(string.Format("?? Copy did not return CloudFile object ", 0));
+                }
+                else
+                {
+                    CopyRequiredMS = DateTime.Now.Subtract(Started).TotalMilliseconds;
+                    TestStatusMsg(string.Format("Copied [{0}] to {1}", currentRow.name, Result.path));
+                    if (UploadRequiredMS > 0) TestStatusMsg(string.Format("Comparison: Upload {0:F1}ms; Copy {1:F1}ms; Pct {2:P2} ", UploadRequiredMS, CopyRequiredMS, CopyRequiredMS / UploadRequiredMS));
+                }
             }
             catch (Exception ecopy)
             {

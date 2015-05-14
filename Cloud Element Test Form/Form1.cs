@@ -117,6 +117,7 @@ namespace Cloud_Element_Test_Form
             tsBtnUpload.Enabled = APIIsConnected;
             saveCurrentSecretsAsToolStripMenuItem.Enabled = APIIsConnected;
             cmdGetFolderContents.Enabled = APIIsConnected;
+            cmdGetID.Enabled = APIIsConnected;
 
             if (APIIsConnected) tabControl1.SelectedTab = tpContents;
             else tabControl1.SelectedTab = tpAuthorize;
@@ -672,6 +673,46 @@ namespace Cloud_Element_Test_Form
             Task UnitTestClean = CleanupUnitTest();
             await UnitTestClean;
            
+        }
+
+        private async void cmdGetID_Click(object sender, EventArgs e)
+        {
+            frmGetCloudFileID frmGet = new frmGetCloudFileID();
+            cmdGetID.Enabled = false;
+            if (frmGet.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Cloud_Elements_API.CloudElementsConnector.TraceLevel diagTraceWas = Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel;
+                try
+                {
+                    TestStatusMsg("Checking: " + frmGet.FileID);
+                    Cloud_Elements_API.CloudFile CloudFileInfoByID;
+                    Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = Cloud_Elements_API.CloudElementsConnector.TraceLevel.All;
+                    CloudFileInfoByID = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, frmGet.FileID);
+                    if (CloudFileInfoByID == null) StatusMsg("Nothing Returned!  (not expecting not found)");
+                    else
+                    {
+                        if (CloudFileInfoByID.directory)
+                        {
+                            txtFolderPath.Text = CloudFileInfoByID.path;
+                        }
+                        else {
+                            txtFolderPath.Text = CloudFileInfoByID.path.Substring(0, CloudFileInfoByID.path.LastIndexOf("/"));
+                        }
+                        TestStatusMsg("Getting: " + CloudFileInfoByID.path);
+                        Task refresh = RefreshCurrentFolder();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMsg(string.Format("FAILED: {0}", ex.Message));
+                }
+                finally
+                {
+                    Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = diagTraceWas;
+                }
+          
+            }
+            cmdGetID.Enabled = true;
         }
 
      
