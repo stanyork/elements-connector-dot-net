@@ -264,12 +264,13 @@ namespace Cloud_Element_Test_Form
 
             tsGetThisFolder.Enabled = currentRow.directory;
             tsGetPriorFolder.Enabled = (FolderPathHistory.Count > 1);
-
+            
             tsDeleteFolderMenuItem.Enabled = true;
             tsGetFileMenuItem.Enabled = !currentRow.directory;
             if (currentRow.directory)
             {
                 tsDeleteFolderMenuItem.Text = "Delete this folder...";
+                
             }
             else tsDeleteFolderMenuItem.Text = "Delete this file...";
 
@@ -453,6 +454,55 @@ namespace Cloud_Element_Test_Form
         {
             tsBtnNewFolder.Enabled = (tsTxtFolderName.Text.Length > 0);
         }
+
+        private async void scanForEmptyFolders(object sender, EventArgs e, Cloud_Elements_API.CloudFile currentRow)
+        {
+            //StatusMsg(string.Format("Scanning folder {0}", currentRow.name));
+            try
+            {
+                if (currentRow.directory)
+                {
+                    if (currentRow.size > 0)
+                    {
+                        TestStatusMsg(string.Format("Folder {1} is not empty: size of {0}", currentRow.size, currentRow.path));
+                        List<Cloud_Elements_API.CloudFile> ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
+
+                        for (int i = 0; i < ResultList.Count; i++)
+                        {
+                            if (ResultList[i].directory)
+                            {
+                                scanForEmptyFolders(sender, e, ResultList[i]);
+                            }
+                            else if (ResultList.Count == 1 && !ResultList[0].directory)
+                            {
+                                if (ResultList[0].size < 999 && ResultList[0].HasTags && (ResultList[0].path.Substring(ResultList[0].path.Length - 4) == ".htm"))
+                                {
+                                    TestStatusMsg(string.Format("Just a .htm file--deleting folder {0} anyway", currentRow.path));
+                                    StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                                    bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                                }
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        TestStatusMsg(string.Format("Folder {0} is empty--Deleting!", currentRow.path));
+                        StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                        bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+
+                    }
+                }
+            }
+            catch (Exception exep)
+            {
+                StatusMsg(string.Format("Problem! {0}", exep));
+            }
+            
+
+         }
+        
+
 
         private async void deleteThisFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -713,6 +763,15 @@ namespace Cloud_Element_Test_Form
           
             }
             cmdGetID.Enabled = true;
+        }
+
+        private void tsRemoveEmptyFolders_Click(object sender, EventArgs e) 
+        {
+            if (!HasGottenFolder()) return;
+            Cloud_Elements_API.CloudFile currentRow = null;
+            if (!HasCurrentCloudFile(ref currentRow)) return;
+
+            scanForEmptyFolders(sender, e, currentRow);
         }
 
      

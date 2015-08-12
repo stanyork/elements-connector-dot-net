@@ -59,6 +59,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.tpContents = new System.Windows.Forms.TabPage();
+            this.cmdGetID = new System.Windows.Forms.Button();
             this.btnGetPriorFolder = new System.Windows.Forms.Button();
             this.chkWithTags = new System.Windows.Forms.CheckBox();
             this.dgFolderContents = new System.Windows.Forms.DataGridView();
@@ -74,6 +75,7 @@
             this.tsGetThisFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetPriorFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsDeleteFolderMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsRemoveEmptyFolders = new System.Windows.Forms.ToolStripMenuItem();
             this.tsTxtObjectName = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsFileTagInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -101,7 +103,6 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.cmdGetID = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -395,6 +396,20 @@
             this.tpContents.Text = "Contents";
             this.tpContents.UseVisualStyleBackColor = true;
             // 
+            // cmdGetID
+            // 
+            this.cmdGetID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdGetID.Enabled = false;
+            this.cmdGetID.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
+            this.cmdGetID.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cmdGetID.Location = new System.Drawing.Point(706, 6);
+            this.cmdGetID.Name = "cmdGetID";
+            this.cmdGetID.Size = new System.Drawing.Size(75, 35);
+            this.cmdGetID.TabIndex = 9;
+            this.cmdGetID.Text = " ID";
+            this.cmdGetID.UseVisualStyleBackColor = true;
+            this.cmdGetID.Click += new System.EventHandler(this.cmdGetID_Click);
+            // 
             // btnGetPriorFolder
             // 
             this.btnGetPriorFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -454,7 +469,7 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 60;
+            this.Column1.Width = 58;
             // 
             // sizeDataGridViewTextBoxColumn
             // 
@@ -482,7 +497,7 @@
             this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
             this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
             this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 42;
+            this.directoryDataGridViewCheckBoxColumn.Width = 40;
             // 
             // HasTags
             // 
@@ -498,7 +513,7 @@
             this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
             this.pathDataGridViewTextBoxColumn.HeaderText = "path";
             this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 53;
+            this.pathDataGridViewTextBoxColumn.Width = 51;
             // 
             // idDataGridViewTextBoxColumn
             // 
@@ -514,6 +529,7 @@
             this.tsGetThisFolder,
             this.tsGetPriorFolder,
             this.tsDeleteFolderMenuItem,
+            this.tsRemoveEmptyFolders,
             this.tsTxtObjectName,
             this.toolStripSeparator1,
             this.tsFileTagInfoMenuItem,
@@ -522,29 +538,36 @@
             this.tsGetFileMenuItem,
             this.getMetadataByPathToolStripMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(189, 195);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(204, 217);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
             // 
             this.tsGetThisFolder.Name = "tsGetThisFolder";
-            this.tsGetThisFolder.Size = new System.Drawing.Size(188, 22);
+            this.tsGetThisFolder.Size = new System.Drawing.Size(203, 22);
             this.tsGetThisFolder.Text = "Get This Folder";
             this.tsGetThisFolder.Click += new System.EventHandler(this.tsGetThisFolder_Click);
             // 
             // tsGetPriorFolder
             // 
             this.tsGetPriorFolder.Name = "tsGetPriorFolder";
-            this.tsGetPriorFolder.Size = new System.Drawing.Size(188, 22);
+            this.tsGetPriorFolder.Size = new System.Drawing.Size(203, 22);
             this.tsGetPriorFolder.Text = "Get Prior Folder";
             this.tsGetPriorFolder.Click += new System.EventHandler(this.tsGetPriorFolder_Click);
             // 
             // tsDeleteFolderMenuItem
             // 
             this.tsDeleteFolderMenuItem.Name = "tsDeleteFolderMenuItem";
-            this.tsDeleteFolderMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.tsDeleteFolderMenuItem.Size = new System.Drawing.Size(203, 22);
             this.tsDeleteFolderMenuItem.Text = "Delete this Folder";
             this.tsDeleteFolderMenuItem.Click += new System.EventHandler(this.deleteThisFolderToolStripMenuItem_Click);
+            // 
+            // tsRemoveEmptyFolders
+            // 
+            this.tsRemoveEmptyFolders.Name = "tsRemoveEmptyFolders";
+            this.tsRemoveEmptyFolders.Size = new System.Drawing.Size(203, 22);
+            this.tsRemoveEmptyFolders.Text = "Remove Empty Folder(s)";
+            this.tsRemoveEmptyFolders.Click += new System.EventHandler(this.tsRemoveEmptyFolders_Click);
             // 
             // tsTxtObjectName
             // 
@@ -557,37 +580,37 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(185, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(200, 6);
             // 
             // tsFileTagInfoMenuItem
             // 
             this.tsFileTagInfoMenuItem.Name = "tsFileTagInfoMenuItem";
-            this.tsFileTagInfoMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.tsFileTagInfoMenuItem.Size = new System.Drawing.Size(203, 22);
             this.tsFileTagInfoMenuItem.Text = "Tags...";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(185, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(200, 6);
             // 
             // tsGetFileLink
             // 
             this.tsGetFileLink.Name = "tsGetFileLink";
-            this.tsGetFileLink.Size = new System.Drawing.Size(188, 22);
+            this.tsGetFileLink.Size = new System.Drawing.Size(203, 22);
             this.tsGetFileLink.Text = "Get Link";
             this.tsGetFileLink.Click += new System.EventHandler(this.tsGetFileLink_Click);
             // 
             // tsGetFileMenuItem
             // 
             this.tsGetFileMenuItem.Name = "tsGetFileMenuItem";
-            this.tsGetFileMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.tsGetFileMenuItem.Size = new System.Drawing.Size(203, 22);
             this.tsGetFileMenuItem.Text = "Get File";
             this.tsGetFileMenuItem.Click += new System.EventHandler(this.tsGetFileMenuItem_Click);
             // 
             // getMetadataByPathToolStripMenuItem
             // 
             this.getMetadataByPathToolStripMenuItem.Name = "getMetadataByPathToolStripMenuItem";
-            this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
             this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
             this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
             // 
@@ -807,20 +830,6 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
-            // cmdGetID
-            // 
-            this.cmdGetID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdGetID.Enabled = false;
-            this.cmdGetID.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
-            this.cmdGetID.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.cmdGetID.Location = new System.Drawing.Point(706, 6);
-            this.cmdGetID.Name = "cmdGetID";
-            this.cmdGetID.Size = new System.Drawing.Size(75, 35);
-            this.cmdGetID.TabIndex = 9;
-            this.cmdGetID.Text = " ID";
-            this.cmdGetID.UseVisualStyleBackColor = true;
-            this.cmdGetID.Click += new System.EventHandler(this.cmdGetID_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -931,6 +940,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown spnRequestsPerSecond;
         private System.Windows.Forms.Button cmdGetID;
+        private System.Windows.Forms.ToolStripMenuItem tsRemoveEmptyFolders;
     }
 }
 
