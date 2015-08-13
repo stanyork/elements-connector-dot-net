@@ -459,6 +459,7 @@ namespace Cloud_Element_Test_Form
         private async Task<bool> scanForEmptyFolders(EmptyFolderOptions scanOptions, Cloud_Elements_API.CloudFile currentRow)
         {
             //StatusMsg(string.Format("Scanning folder {0}", currentRow.name));
+            Cloud_Elements_API.CloudElementsConnector ViaConnector = APIConnector.Clone();
             bool deletedAnything = false;
             try
             {
@@ -467,7 +468,7 @@ namespace Cloud_Element_Test_Form
                     List<Cloud_Elements_API.CloudFile> ResultList = null;
                     if (currentRow.size > 0)
                     {
-                        ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
+                        ResultList = await ViaConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
                         TestStatusMsg(string.Format("FYI: Folder {1} contains {0} bytes in file(s)", currentRow.size, currentRow.path));
 
                         for (int i = 0; i < ResultList.Count; i++)
@@ -483,7 +484,7 @@ namespace Cloud_Element_Test_Form
                     // if anything was deleted by our recursive calls, we need to re-get the result list!
                     if (deletedAnything)
                     {
-                        ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
+                        ResultList = await ViaConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
                         //TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
                         if (ResultList.Count > 1) return deletedAnything;
                     }
@@ -513,7 +514,7 @@ namespace Cloud_Element_Test_Form
 
                     TestStatusMsg(string.Format("Deleting {0}; (empty)", currentRow.path));
                     StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                    deletedAnything = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                    deletedAnything = await ViaConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
                     CountOfFoldersRemoved++;
 
 
@@ -524,6 +525,7 @@ namespace Cloud_Element_Test_Form
                 StatusMsg(string.Format("Problem! {0}", exep));
             }
 
+            ViaConnector.Close();
             return deletedAnything;
 
         }
