@@ -24,10 +24,12 @@ namespace Cloud_Element_Test_Form
         {
             ScanOptions.PathCheck = chkMustContain.Checked;
             ScanOptions.SingleFileOK = chkSingleFile.Checked;
+            ScanOptions.SingleFileTagRequired = chkTagged.Checked;
 
             ScanOptions.PathMustContain = txtPathRequires.Text.Trim();
             ScanOptions.SingleFileSizeUnder = (ulong)spnMaxBytes.Value;
             ScanOptions.SingleFileType = txtIgnoreExtenion.Text.Trim();
+            ScanOptions.SingleFileAgeInHours = (double)spnHoursOld.Value;
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
         }

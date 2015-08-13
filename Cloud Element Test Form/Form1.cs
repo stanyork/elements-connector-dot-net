@@ -79,15 +79,15 @@ namespace Cloud_Element_Test_Form
 
 
         private string DefaultSecretsFN;
-        private   void Form1_Load(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
             txtWorkFolder.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\";
             if (!System.IO.Directory.Exists(txtWorkFolder.Text)) System.IO.Directory.CreateDirectory(txtWorkFolder.Text);
             DefaultSecretsFN = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\Default Secrets.json";
             if (System.IO.File.Exists(DefaultSecretsFN))
             {
-                 LoadSecretsFromFile(DefaultSecretsFN);
-             }
+                LoadSecretsFromFile(DefaultSecretsFN);
+            }
             else
             {
                 if (System.Windows.Forms.MessageBox.Show(string.Format("Stored Secrets not found - {0}\n\nYou will have to enter element and user secrets on the form.\n\nContinue?", DefaultSecretsFN), "Notification", System.Windows.Forms.MessageBoxButtons.YesNo) != System.Windows.Forms.DialogResult.Yes)
@@ -148,7 +148,7 @@ namespace Cloud_Element_Test_Form
                 UpdateSecretsFile(PongResult.ToString());
                 toolStripTxtConnectionNow.Text = PongResult.endpoint;
                 Cloud_Elements_API.CloudStorage StorageResult = await StorageTask;
-                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(  StorageResult.total),
+                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.total),
                     Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.shared),
                     Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.used)));
 
@@ -265,13 +265,13 @@ namespace Cloud_Element_Test_Form
 
             tsGetThisFolder.Enabled = currentRow.directory;
             tsGetPriorFolder.Enabled = (FolderPathHistory.Count > 1);
-            
+
             tsDeleteFolderMenuItem.Enabled = true;
             tsGetFileMenuItem.Enabled = !currentRow.directory;
             if (currentRow.directory)
             {
                 tsDeleteFolderMenuItem.Text = "Delete this folder...";
-                
+
             }
             else tsDeleteFolderMenuItem.Text = "Delete this file...";
 
@@ -456,62 +456,78 @@ namespace Cloud_Element_Test_Form
             tsBtnNewFolder.Enabled = (tsTxtFolderName.Text.Length > 0);
         }
 
-        private async Task scanForEmptyFolders(EmptyFolderOptions scanOptions,   Cloud_Elements_API.CloudFile currentRow)
+        private async Task<bool> scanForEmptyFolders(EmptyFolderOptions scanOptions, Cloud_Elements_API.CloudFile currentRow)
         {
             //StatusMsg(string.Format("Scanning folder {0}", currentRow.name));
+            bool deletedAnything = false;
             try
             {
                 if (currentRow.directory)
                 {
+                    List<Cloud_Elements_API.CloudFile> ResultList = null;
                     if (currentRow.size > 0)
                     {
+                        ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
                         TestStatusMsg(string.Format("FYI: Folder {1} contains {0} bytes in file(s)", currentRow.size, currentRow.path));
-                        List<Cloud_Elements_API.CloudFile> ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
 
                         for (int i = 0; i < ResultList.Count; i++)
                         {
                             if (ResultList[i].directory)
                             {
-                                await scanForEmptyFolders(scanOptions, ResultList[i]);
+                                deletedAnything = await scanForEmptyFolders(scanOptions, ResultList[i]);
                             }
-                            else if ((scanOptions.SingleFileOK) && (ResultList.Count == 1) && !ResultList[0].directory)
-                            {
-                                if ((ResultList[0].size < scanOptions.SingleFileSizeUnder) && ResultList[0].HasTags && (ResultList[0].path.EndsWith(scanOptions.SingleFileType,StringComparison.CurrentCultureIgnoreCase  )))
-                                {
-                                    if ((!scanOptions.PathCheck) || (ResultList[0].path.IndexOf(scanOptions.PathMustContain, StringComparison.CurrentCultureIgnoreCase) > 0))
-                                    {
-                                        TestStatusMsg(string.Format("Deleting {0}; (Single {1} file)", currentRow.path, scanOptions.SingleFileType));
-                                        StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                                        bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
-                                        CountOfFoldersRemoved++;
-                                    }
-                                    else
-                                    {
-                                        TestStatusMsg(string.Format("Kept {0} - folder path does not contain {1}", currentRow.path, scanOptions.SingleFileType));
-                                    }
-                                }
-                            }
-
                         }
                     }
-                    else
-                    {
-                        TestStatusMsg(string.Format("Deleting {0}; (empty)", currentRow.path));
-                        StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                        bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
-                        CountOfFoldersRemoved++;
 
+                    if (!deletedAnything && currentRow.size > 0) return deletedAnything; // obviously still not empty
+                    // if anything was deleted by our recursive calls, we need to re-get the result list!
+                    if (deletedAnything)
+                    {
+                        ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
+                        TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
+                        if (ResultList.Count > 1) return deletedAnything;
                     }
+                    
+                    if ((currentRow.size > 0) && (scanOptions.SingleFileOK) && (ResultList.Count == 1) && !ResultList[0].directory)
+                    {
+                        double fileAge = -1;
+                        if (ResultList[0].IsCreatedValid) fileAge = DateTime.Now.Subtract(ResultList[0].WhenCreated()).TotalHours;
+                        if ((ResultList[0].size <= scanOptions.SingleFileSizeUnder)
+                                && (!scanOptions.SingleFileTagRequired || ResultList[0].HasTags)
+                                && (ResultList[0].IsCreatedValid && (fileAge >= scanOptions.SingleFileAgeInHours))
+                                && (ResultList[0].path.EndsWith(scanOptions.SingleFileType, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            // single file is ok to ignored (removed message from here)
+                        }
+                        else {
+                            TestStatusMsg(string.Format("Kept {0} - folder contains {1}, {2} bytes; {3:F1} hours old", currentRow.path, ResultList[0].name,ResultList[0].size,fileAge));
+                            return deletedAnything; 
+                        }
+                    }
+
+                    if ((scanOptions.PathCheck) && (currentRow.path.IndexOf(scanOptions.PathMustContain, StringComparison.CurrentCultureIgnoreCase) < 0))
+                    {
+                        TestStatusMsg(string.Format("Kept {0} - folder path does not contain {1}", currentRow.path, scanOptions.PathMustContain));
+                        return deletedAnything;
+                    }
+
+                    TestStatusMsg(string.Format("Deleting {0}; (empty)", currentRow.path));
+                    StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                    deletedAnything = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                    CountOfFoldersRemoved++;
+
+
                 }
             }
             catch (Exception exep)
             {
                 StatusMsg(string.Format("Problem! {0}", exep));
             }
-            
 
-         }
-        
+            return deletedAnything;
+
+        }
+
 
 
         private async void deleteThisFolderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -535,7 +551,7 @@ namespace Cloud_Element_Test_Form
                     }
 
                     StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                   bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                    bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
                 }
                 else
                 {
@@ -584,7 +600,7 @@ namespace Cloud_Element_Test_Form
             if (!chkWithTags.Checked || !currentRow.HasTags)
             {
                 StatusMsg("Getting current Tag(s).... ");
-                currentRow = await APIConnector.GetDocEntryMetaData(currentRow.EntryType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id,false);
+                currentRow = await APIConnector.GetDocEntryMetaData(currentRow.EntryType, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id, false);
             }
 
             StatusMsg("Storing Tag: " + TagToSet);
@@ -666,12 +682,13 @@ namespace Cloud_Element_Test_Form
 
         private void tsTxtObjectName_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '\r') {
+            if (e.KeyChar == '\r')
+            {
                 RenameCurrentCloudFile();
             }
         }
 
-      
+
 
         private void saveCurrentSecretsAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -699,29 +716,29 @@ namespace Cloud_Element_Test_Form
 
         private async void cmdTestButton_Click(object sender, EventArgs e)
         {
-          Task UnitTestTask = RunUnitTest();
-          cmdTestButton.Enabled = false;
-          await UnitTestTask;
+            Task UnitTestTask = RunUnitTest();
+            cmdTestButton.Enabled = false;
+            await UnitTestTask;
 
-          Boolean broken =  UnitTestTask.IsFaulted;
+            Boolean broken = UnitTestTask.IsFaulted;
 
-          if (!broken)
-          {
-              if (chkTestCleanup.Checked == true)
-              {
-                  Task UnitTestClean = CleanupUnitTest();
-                  await UnitTestClean;
-              }
-          }
+            if (!broken)
+            {
+                if (chkTestCleanup.Checked == true)
+                {
+                    Task UnitTestClean = CleanupUnitTest();
+                    await UnitTestClean;
+                }
+            }
 
-          TestStatusMsg("Summary: " + APIConnector.GetStatisticsSummary());
+            TestStatusMsg("Summary: " + APIConnector.GetStatisticsSummary());
 
-          if (chkAutoSaveLog.Checked)
-          {
-              string fn = System.IO.Path.Combine(WorkPath, "Test Log for " + toolStripTxtConnectionNow.Text) + ".log" ;
-              Cloud_Elements_API.Tools.StringToFile(tbTestOutput.Text,fn );
-          }
-          cmdTestButton.Enabled = true;
+            if (chkAutoSaveLog.Checked)
+            {
+                string fn = System.IO.Path.Combine(WorkPath, "Test Log for " + toolStripTxtConnectionNow.Text) + ".log";
+                Cloud_Elements_API.Tools.StringToFile(tbTestOutput.Text, fn);
+            }
+            cmdTestButton.Enabled = true;
         }
 
         private void cmdTestClearLog_Click(object sender, EventArgs e)
@@ -733,7 +750,7 @@ namespace Cloud_Element_Test_Form
         {
             Task UnitTestClean = CleanupUnitTest();
             await UnitTestClean;
-           
+
         }
 
         private async void cmdGetID_Click(object sender, EventArgs e)
@@ -756,7 +773,8 @@ namespace Cloud_Element_Test_Form
                         {
                             txtFolderPath.Text = CloudFileInfoByID.path;
                         }
-                        else {
+                        else
+                        {
                             txtFolderPath.Text = CloudFileInfoByID.path.Substring(0, CloudFileInfoByID.path.LastIndexOf("/"));
                         }
                         TestStatusMsg("Getting: " + CloudFileInfoByID.path);
@@ -771,14 +789,14 @@ namespace Cloud_Element_Test_Form
                 {
                     Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = diagTraceWas;
                 }
-          
+
             }
             cmdGetID.Enabled = true;
         }
 
         int CountOfFoldersRemoved = 0;
 
-        private async void tsRemoveEmptyFolders_Click(object sender, EventArgs e) 
+        private async void tsRemoveEmptyFolders_Click(object sender, EventArgs e)
         {
             if (!HasGottenFolder()) return;
             Cloud_Elements_API.CloudFile currentRow = null;
@@ -795,12 +813,12 @@ namespace Cloud_Element_Test_Form
             TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
         }
 
-     
+
 
 
     }
- 
-        
+
+
 
 
 }

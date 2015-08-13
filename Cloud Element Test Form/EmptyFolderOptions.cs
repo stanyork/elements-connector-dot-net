@@ -10,8 +10,10 @@ namespace Cloud_Element_Test_Form
     {
         public bool SingleFileOK = true;
         public bool PathCheck = true;
-        public ulong  SingleFileSizeUnder = 999;
+        public bool SingleFileTagRequired = true;
+        public ulong SingleFileSizeUnder = 999;
         public string SingleFileType = ".htm";
+        public double  SingleFileAgeInHours = 12.0;
 
         public string PathMustContain = "/rfi/";
     }
