@@ -17,6 +17,7 @@ namespace Cloud_Element_Test_Form
             InitializeComponent();
         }
 
+        private EmptyFolderOptions ScanOptions = new EmptyFolderOptions();
         private Cloud_Elements_API.CloudAuthorization APIAuthorization;
         private Cloud_Elements_API.CloudElementsConnector APIConnector;
 
@@ -455,7 +456,7 @@ namespace Cloud_Element_Test_Form
             tsBtnNewFolder.Enabled = (tsTxtFolderName.Text.Length > 0);
         }
 
-        private async void scanForEmptyFolders(object sender, EventArgs e, Cloud_Elements_API.CloudFile currentRow)
+        private async Task scanForEmptyFolders(EmptyFolderOptions scanOptions,   Cloud_Elements_API.CloudFile currentRow)
         {
             //StatusMsg(string.Format("Scanning folder {0}", currentRow.name));
             try
@@ -464,22 +465,30 @@ namespace Cloud_Element_Test_Form
                 {
                     if (currentRow.size > 0)
                     {
-                        TestStatusMsg(string.Format("Folder {1} is not empty: size of {0}", currentRow.size, currentRow.path));
+                        TestStatusMsg(string.Format("FYI: Folder {1} contains {0} bytes in file(s)", currentRow.size, currentRow.path));
                         List<Cloud_Elements_API.CloudFile> ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
 
                         for (int i = 0; i < ResultList.Count; i++)
                         {
                             if (ResultList[i].directory)
                             {
-                                scanForEmptyFolders(sender, e, ResultList[i]);
+                                await scanForEmptyFolders(scanOptions, ResultList[i]);
                             }
-                            else if (ResultList.Count == 1 && !ResultList[0].directory)
+                            else if ((scanOptions.SingleFileOK) && (ResultList.Count == 1) && !ResultList[0].directory)
                             {
-                                if (ResultList[0].size < 999 && ResultList[0].HasTags && (ResultList[0].path.Substring(ResultList[0].path.Length - 4) == ".htm"))
+                                if ((ResultList[0].size < scanOptions.SingleFileSizeUnder) && ResultList[0].HasTags && (ResultList[0].path.EndsWith(scanOptions.SingleFileType,StringComparison.CurrentCultureIgnoreCase  )))
                                 {
-                                    TestStatusMsg(string.Format("Just a .htm file--deleting folder {0} anyway", currentRow.path));
-                                    StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
-                                    bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                                    if ((!scanOptions.PathCheck) || (ResultList[0].path.IndexOf(scanOptions.PathMustContain, StringComparison.CurrentCultureIgnoreCase) > 0))
+                                    {
+                                        TestStatusMsg(string.Format("Deleting {0}; (Single {1} file)", currentRow.path, scanOptions.SingleFileType));
+                                        StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
+                                        bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                                        CountOfFoldersRemoved++;
+                                    }
+                                    else
+                                    {
+                                        TestStatusMsg(string.Format("Kept {0} - folder path does not contain {1}", currentRow.path, scanOptions.SingleFileType));
+                                    }
                                 }
                             }
 
@@ -487,9 +496,10 @@ namespace Cloud_Element_Test_Form
                     }
                     else
                     {
-                        TestStatusMsg(string.Format("Folder {0} is empty--Deleting!", currentRow.path));
+                        TestStatusMsg(string.Format("Deleting {0}; (empty)", currentRow.path));
                         StatusMsg(string.Format("Deleting {0}, size={1}", currentRow.path, Cloud_Elements_API.Tools.SizeInBytesToString(currentRow.size)));
                         bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, false);
+                        CountOfFoldersRemoved++;
 
                     }
                 }
@@ -766,18 +776,31 @@ namespace Cloud_Element_Test_Form
             cmdGetID.Enabled = true;
         }
 
-        private void tsRemoveEmptyFolders_Click(object sender, EventArgs e) 
+        int CountOfFoldersRemoved = 0;
+
+        private async void tsRemoveEmptyFolders_Click(object sender, EventArgs e) 
         {
             if (!HasGottenFolder()) return;
             Cloud_Elements_API.CloudFile currentRow = null;
             if (!HasCurrentCloudFile(ref currentRow)) return;
+            frmEmptyFolderScanOptions emptyOptions = new frmEmptyFolderScanOptions();
+            if (emptyOptions.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
+            ScanOptions = emptyOptions.ScanOptions;
 
             APIConnector.EndpointMaxRequestsPerSecond = 2;
-            scanForEmptyFolders(sender, e, currentRow);
+            CountOfFoldersRemoved = 0;
+            StatusMsg("Starting folder scan...");
+            await scanForEmptyFolders(ScanOptions, currentRow);
+            StatusMsg("Folder scan ended, see test log for results.");
+            TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
         }
 
      
 
 
     }
+ 
+        
+
+
 }
