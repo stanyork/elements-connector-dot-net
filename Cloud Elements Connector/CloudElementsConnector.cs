@@ -775,7 +775,7 @@ namespace Cloud_Elements_API
         /// <summary>
         /// Manages the requests per second, adding delays if/when needed
         /// </summary>
-        private void ThrottleRequestsPerSecond()
+        private void ThrottleRequestsPerSecond(int forcedMS )
         {
             EndpointOptions options;
             if (EndpointSettings.ContainsKey(Endpoint))
@@ -832,6 +832,7 @@ namespace Cloud_Elements_API
                 }
 
             }
+            delayMS += forcedMS;
             if (delayMS > 0)
             {
                 if (options.LogThrottleDelays) OnDiagTrace(string.Format("ce(throttled) [{0}] delayed {1}ms", Endpoint, delayMS));
@@ -854,7 +855,7 @@ namespace Cloud_Elements_API
         /// <returns></returns>
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI, HttpContent content)
         {
-            ThrottleRequestsPerSecond();
+            ThrottleRequestsPerSecond(0);
             DateTime startms = DateTime.Now;
             lock (StaticLockObject) RequestCounter++;
             InstanceRequestCounter++;
@@ -914,6 +915,7 @@ namespace Cloud_Elements_API
                                     EndpointOptions options;
                                     if (EndpointSettings.ContainsKey(Endpoint))
                                     {
+                                        ThrottleRequestsPerSecond(2468);
                                         options = EndpointSettings[Endpoint];
                                         options.LastRateExceeded = DateTime.Now;
                                         if ((options.MaxRqPerSecond <= 0) || (options.MaxRqPerSecond > options.HighwaterGeneratedRequestsPerSecond)) options.MaxRqPerSecond = (int)options.HighwaterGeneratedRequestsPerSecond;
@@ -923,6 +925,7 @@ namespace Cloud_Elements_API
                                             options.LastAutoLimit = options.LastRateExceeded;
                                             OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
                                         }
+                                        response = await APIExecuteVerb(verb, URI, content);
                                     }
                                 }
                             }

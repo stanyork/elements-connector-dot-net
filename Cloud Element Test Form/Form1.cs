@@ -479,12 +479,12 @@ namespace Cloud_Element_Test_Form
                         }
                     }
 
-                    if (!deletedAnything && currentRow.size > 0) return deletedAnything; // obviously still not empty
+                   
                     // if anything was deleted by our recursive calls, we need to re-get the result list!
                     if (deletedAnything)
                     {
                         ResultList = await APIConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
-                        TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
+                        //TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
                         if (ResultList.Count > 1) return deletedAnything;
                     }
                     
