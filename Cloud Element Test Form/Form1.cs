@@ -677,6 +677,7 @@ namespace Cloud_Element_Test_Form
 
         private void loadSecretsFromToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            txtFolderPath.Text = "/";
             openSecretsFileDialog.InitialDirectory = WorkPath;
             openSecretsFileDialog.FileName = "";
             if (openSecretsFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -771,6 +772,7 @@ namespace Cloud_Element_Test_Form
             Cloud_Elements_API.CloudFile currentRow = null;
             if (!HasCurrentCloudFile(ref currentRow)) return;
 
+            APIConnector.EndpointMaxRequestsPerSecond = 2;
             scanForEmptyFolders(sender, e, currentRow);
         }
 
