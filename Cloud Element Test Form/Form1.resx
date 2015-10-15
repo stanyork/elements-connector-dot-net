@@ -176,29 +176,6 @@
         MBqNMs9f+pPH83fGz+8fd8L2rG1fTXEAAAAASUVORK5CYII=
 </value>
   </data>
-  <data name="tsBtnUpload.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAPOSURBVEhLtZQNTNRlHMf/h4dirxIWgmBxuMBwFoUVL5mO
-        smVWc5BmRMQmGMla0dBh1iRxaDB5GdJgNzgY0uAG54ARThwyYZxDh+xkJwMGA8cx2HmDHQx2j/fpAbLl
-        bK7m9d1++79/Ps/v92x/5b/k9RMBvJMXyJ+Xrk+0VsOPrfEk6sJdL0npDCDFqOFgZyDVt35iT95m10ly
-        +qPJG44md3gbpwcjyRl6i0ujZUQc9neNpMWWSbP1GI3Wwxim0qibTJXnR+kYMhCc9IxrJN12Hd32cq7O
-        lHHVrmXKMUCvvY40XZxrBK22bNpsObTb8rgyXYBdTBFf/Lbr9qF0LAbt2D5043FUWhKYFrd57dv1rhMc
-        Mb3E0b7NHDNv4bg5lLG5G4SkeLlOEHNew94mDftbNMS3ajBZ29h00NN1gqhCDfdqe/FGGvpLCEv3/n8E
-        MbowstuS+bjoEX8bu7P8+PCUPx/katiR+wLbC+SxKICdv/qyrzKIzCa5F9WbGK0IYKDUh1tn12LOX/PP
-        0oHGQ4y0HsFiPM2d3gKmrmVT2/w+KW0aDnUFLFenhtT2IDI6ty5VeaEfV457Yczy4o5+A44L/sw1rsOq
-        92X20hZEz7soc/2pWI1JjMuWRy9+hencJzSlr6cyTv1X6dPXUqULprjlZQquv0luYwjaXB+6TnozWhXI
-        hD4Qa3MoCz17cQ6kyfoOYU6Sgp0ozuFU7g6mIPqT5c1EaV93H7zp++cY/i2MwapXGa6J4HZ9FJbz4Uw0
-        RDJtjMM5cgrneBnO0Tyc/ZIjVy2MWxGdIYjLASjL8CTu9iXgvBnHZPXT9wkWa/FFcdEb0fwUC/UesDAF
-        dhNOixbn4DeI6zsQ3W8guuRY2gMRrb6I3z0RDY+hiP4Dy3DTZ4gbsQyVuD8ouPAsoulJFupWYa9SsxjR
-        E424Fimhr0joi4g2f0SLF6LxCRyGVThqVjBXqZKCvi8Qvftx9sTID3bTlal6UNDwOPO1K7FXqJk86wYO
-        K6IjWEI3LMtlZ8LggaNWzfw5FfZyBVuJwmS+Iveg91PZ4h7Z4i65mm0stIcypX8ec6EnlzM8qE9yZ75m
-        JdPlaiYK3Rg+qULMdEvoGilejUMvn1e7MVuhYqZUwVqkYP5ZQZcg4feS+JEfVZlBjNQvbsxGOW+fJYDD
-        sJrZands2hWM57sxdEKFKV0KLJVL0MUR2LXL0JFfFCq+/Bv0YYmNcifvgDsdWWosxRJ+RsWAHF1vmoIx
-        WUEM/oCteHkETakKieH/EvywfB2hULBLwRCr4Lj5ORnvuQD66FGUPwDrQO2ogIy6OgAAAABJRU5ErkJg
-        gg==
-</value>
-  </data>
   <data name="tsBtnNewFolder.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
@@ -269,6 +246,9 @@
     <value>909, 17</value>
   </metadata>
   <metadata name="saveSecretsFileDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>207, 56</value>
+  </metadata>
+  <metadata name="folderBrowserUploadTree.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 56</value>
   </metadata>
 </root>

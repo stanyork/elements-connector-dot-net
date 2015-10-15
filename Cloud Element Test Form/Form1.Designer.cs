@@ -33,19 +33,10 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripConnectionSecrets = new System.Windows.Forms.ToolStripDropDownButton();
-            this.saveCurrentSecretsAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadSecretsFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripTxtConnectionNow = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnPing = new System.Windows.Forms.ToolStripButton();
-            this.tsBtnUpload = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsBtnNewFolder = new System.Windows.Forms.ToolStripButton();
             this.tsTxtFolderName = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.tstxtTagData = new System.Windows.Forms.ToolStripTextBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tpAuthorize = new System.Windows.Forms.TabPage();
@@ -59,18 +50,10 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.tpContents = new System.Windows.Forms.TabPage();
-            this.cmdGetID = new System.Windows.Forms.Button();
-            this.btnGetPriorFolder = new System.Windows.Forms.Button();
             this.chkWithTags = new System.Windows.Forms.CheckBox();
             this.dgFolderContents = new System.Windows.Forms.DataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.createdDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.modifiedDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.directoryDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.HasTags = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FolderRowContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tsGetThisFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetPriorFolder = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,8 +66,6 @@
             this.tsGetFileLink = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getMetadataByPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.cmdGetFolderContents = new System.Windows.Forms.Button();
             this.txtFolderPath = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.tpLog = new System.Windows.Forms.TabPage();
@@ -103,6 +84,28 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.cmdGetID = new System.Windows.Forms.Button();
+            this.btnGetPriorFolder = new System.Windows.Forms.Button();
+            this.cmdGetFolderContents = new System.Windows.Forms.Button();
+            this.toolStripConnectionSecrets = new System.Windows.Forms.ToolStripDropDownButton();
+            this.saveCurrentSecretsAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadSecretsFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripTxtConnectionNow = new System.Windows.Forms.ToolStripTextBox();
+            this.tsBtnPing = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnNewFolder = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
+            this.tsBtnUpload = new System.Windows.Forms.ToolStripDropDownButton();
+            this.uploadOneFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uploadSubtreeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.createdDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.modifiedDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.directoryDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.idDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.folderBrowserUploadTree = new System.Windows.Forms.FolderBrowserDialog();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -111,10 +114,10 @@
             this.tpContents.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgFolderContents)).BeginInit();
             this.FolderRowContextMenu.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.tpLog.SuspendLayout();
             this.tpTest.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spnRequestsPerSecond)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip1
@@ -155,85 +158,15 @@
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
-            // toolStripConnectionSecrets
-            // 
-            this.toolStripConnectionSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripConnectionSecrets.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.saveCurrentSecretsAsToolStripMenuItem,
-            this.loadSecretsFromToolStripMenuItem,
-            this.toolStripMenuItem1,
-            this.toolStripTxtConnectionNow});
-            this.toolStripConnectionSecrets.Image = ((System.Drawing.Image)(resources.GetObject("toolStripConnectionSecrets.Image")));
-            this.toolStripConnectionSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripConnectionSecrets.Name = "toolStripConnectionSecrets";
-            this.toolStripConnectionSecrets.Size = new System.Drawing.Size(37, 28);
-            this.toolStripConnectionSecrets.Text = "toolStripDropDownButton1";
-            // 
-            // saveCurrentSecretsAsToolStripMenuItem
-            // 
-            this.saveCurrentSecretsAsToolStripMenuItem.Enabled = false;
-            this.saveCurrentSecretsAsToolStripMenuItem.Name = "saveCurrentSecretsAsToolStripMenuItem";
-            this.saveCurrentSecretsAsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.saveCurrentSecretsAsToolStripMenuItem.Text = "Save Current Secrets As...";
-            this.saveCurrentSecretsAsToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentSecretsAsToolStripMenuItem_Click);
-            // 
-            // loadSecretsFromToolStripMenuItem
-            // 
-            this.loadSecretsFromToolStripMenuItem.Name = "loadSecretsFromToolStripMenuItem";
-            this.loadSecretsFromToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.loadSecretsFromToolStripMenuItem.Text = "Load Secrets from...";
-            this.loadSecretsFromToolStripMenuItem.Click += new System.EventHandler(this.loadSecretsFromToolStripMenuItem_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(203, 6);
-            // 
-            // toolStripTxtConnectionNow
-            // 
-            this.toolStripTxtConnectionNow.Name = "toolStripTxtConnectionNow";
-            this.toolStripTxtConnectionNow.ReadOnly = true;
-            this.toolStripTxtConnectionNow.Size = new System.Drawing.Size(100, 23);
-            // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(6, 31);
             // 
-            // tsBtnPing
-            // 
-            this.tsBtnPing.Enabled = false;
-            this.tsBtnPing.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnPing.Image")));
-            this.tsBtnPing.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.tsBtnPing.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnPing.Name = "tsBtnPing";
-            this.tsBtnPing.Size = new System.Drawing.Size(59, 28);
-            this.tsBtnPing.Text = "Ping";
-            this.tsBtnPing.Click += new System.EventHandler(this.tsBtnPing_Click);
-            // 
-            // tsBtnUpload
-            // 
-            this.tsBtnUpload.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnUpload.Image")));
-            this.tsBtnUpload.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.tsBtnUpload.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnUpload.Name = "tsBtnUpload";
-            this.tsBtnUpload.Size = new System.Drawing.Size(73, 28);
-            this.tsBtnUpload.Text = "Upload";
-            this.tsBtnUpload.Click += new System.EventHandler(this.toolStripButton1_Click);
-            // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(6, 31);
-            // 
-            // tsBtnNewFolder
-            // 
-            this.tsBtnNewFolder.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnNewFolder.Image")));
-            this.tsBtnNewFolder.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsBtnNewFolder.Name = "tsBtnNewFolder";
-            this.tsBtnNewFolder.Size = new System.Drawing.Size(82, 28);
-            this.tsBtnNewFolder.Text = "+ Folder:";
-            this.tsBtnNewFolder.Click += new System.EventHandler(this.tsBtnNewFolder_Click);
             // 
             // tsTxtFolderName
             // 
@@ -247,15 +180,6 @@
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
             this.toolStripSeparator5.Size = new System.Drawing.Size(6, 31);
-            // 
-            // toolStripButton1
-            // 
-            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
-            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(69, 28);
-            this.toolStripButton1.Text = " + Tag";
-            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click_1);
             // 
             // tstxtTagData
             // 
@@ -385,9 +309,9 @@
             this.tpContents.Controls.Add(this.btnGetPriorFolder);
             this.tpContents.Controls.Add(this.chkWithTags);
             this.tpContents.Controls.Add(this.dgFolderContents);
-            this.tpContents.Controls.Add(this.cmdGetFolderContents);
             this.tpContents.Controls.Add(this.txtFolderPath);
             this.tpContents.Controls.Add(this.label3);
+            this.tpContents.Controls.Add(this.cmdGetFolderContents);
             this.tpContents.Location = new System.Drawing.Point(4, 22);
             this.tpContents.Name = "tpContents";
             this.tpContents.Padding = new System.Windows.Forms.Padding(3);
@@ -395,34 +319,6 @@
             this.tpContents.TabIndex = 0;
             this.tpContents.Text = "Contents";
             this.tpContents.UseVisualStyleBackColor = true;
-            // 
-            // cmdGetID
-            // 
-            this.cmdGetID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdGetID.Enabled = false;
-            this.cmdGetID.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
-            this.cmdGetID.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.cmdGetID.Location = new System.Drawing.Point(706, 6);
-            this.cmdGetID.Name = "cmdGetID";
-            this.cmdGetID.Size = new System.Drawing.Size(75, 35);
-            this.cmdGetID.TabIndex = 9;
-            this.cmdGetID.Text = " ID";
-            this.cmdGetID.UseVisualStyleBackColor = true;
-            this.cmdGetID.Click += new System.EventHandler(this.cmdGetID_Click);
-            // 
-            // btnGetPriorFolder
-            // 
-            this.btnGetPriorFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGetPriorFolder.Enabled = false;
-            this.btnGetPriorFolder.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Move_Up;
-            this.btnGetPriorFolder.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnGetPriorFolder.Location = new System.Drawing.Point(623, 6);
-            this.btnGetPriorFolder.Name = "btnGetPriorFolder";
-            this.btnGetPriorFolder.Size = new System.Drawing.Size(77, 35);
-            this.btnGetPriorFolder.TabIndex = 8;
-            this.btnGetPriorFolder.Text = " Up";
-            this.btnGetPriorFolder.UseVisualStyleBackColor = true;
-            this.btnGetPriorFolder.Click += new System.EventHandler(this.GetPriorFolder_Click);
             // 
             // chkWithTags
             // 
@@ -469,35 +365,7 @@
             this.Column1.DataPropertyName = "name";
             this.Column1.HeaderText = "Name";
             this.Column1.Name = "Column1";
-            this.Column1.Width = 58;
-            // 
-            // sizeDataGridViewTextBoxColumn
-            // 
-            this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "size";
-            this.sizeDataGridViewTextBoxColumn.HeaderText = "size";
-            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-            this.sizeDataGridViewTextBoxColumn.Width = 5;
-            // 
-            // createdDateDataGridViewTextBoxColumn
-            // 
-            this.createdDateDataGridViewTextBoxColumn.DataPropertyName = "createdDate";
-            this.createdDateDataGridViewTextBoxColumn.HeaderText = "createdDate";
-            this.createdDateDataGridViewTextBoxColumn.Name = "createdDateDataGridViewTextBoxColumn";
-            // 
-            // modifiedDateDataGridViewTextBoxColumn
-            // 
-            this.modifiedDateDataGridViewTextBoxColumn.DataPropertyName = "modifiedDate";
-            this.modifiedDateDataGridViewTextBoxColumn.HeaderText = "modifiedDate";
-            this.modifiedDateDataGridViewTextBoxColumn.Name = "modifiedDateDataGridViewTextBoxColumn";
-            // 
-            // directoryDataGridViewCheckBoxColumn
-            // 
-            this.directoryDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
-            this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
-            this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
-            this.directoryDataGridViewCheckBoxColumn.Width = 40;
+            this.Column1.Width = 60;
             // 
             // HasTags
             // 
@@ -505,23 +373,6 @@
             this.HasTags.HeaderText = "Tagged";
             this.HasTags.Name = "HasTags";
             this.HasTags.ReadOnly = true;
-            // 
-            // pathDataGridViewTextBoxColumn
-            // 
-            this.pathDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.pathDataGridViewTextBoxColumn.DataPropertyName = "path";
-            this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
-            this.pathDataGridViewTextBoxColumn.HeaderText = "path";
-            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.Width = 51;
-            // 
-            // idDataGridViewTextBoxColumn
-            // 
-            this.idDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            this.idDataGridViewTextBoxColumn.DataPropertyName = "id";
-            this.idDataGridViewTextBoxColumn.HeaderText = "id";
-            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
-            this.idDataGridViewTextBoxColumn.Width = 5;
             // 
             // FolderRowContextMenu
             // 
@@ -613,25 +464,6 @@
             this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
             this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
             this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
-            // 
-            // cloudFileBindingSource
-            // 
-            this.cloudFileBindingSource.AllowNew = false;
-            this.cloudFileBindingSource.DataSource = typeof(Cloud_Elements_API.CloudFile);
-            // 
-            // cmdGetFolderContents
-            // 
-            this.cmdGetFolderContents.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdGetFolderContents.Enabled = false;
-            this.cmdGetFolderContents.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
-            this.cmdGetFolderContents.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.cmdGetFolderContents.Location = new System.Drawing.Point(542, 6);
-            this.cmdGetFolderContents.Name = "cmdGetFolderContents";
-            this.cmdGetFolderContents.Size = new System.Drawing.Size(75, 35);
-            this.cmdGetFolderContents.TabIndex = 5;
-            this.cmdGetFolderContents.Text = " Get";
-            this.cmdGetFolderContents.UseVisualStyleBackColor = true;
-            this.cmdGetFolderContents.Click += new System.EventHandler(this.cmdGetFolderContents_Click);
             // 
             // txtFolderPath
             // 
@@ -830,6 +662,197 @@
             this.saveSecretsFileDialog1.Filter = "JSON Files|*.json";
             this.saveSecretsFileDialog1.Title = "Save Current Connection Secrets";
             // 
+            // cmdGetID
+            // 
+            this.cmdGetID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdGetID.Enabled = false;
+            this.cmdGetID.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
+            this.cmdGetID.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cmdGetID.Location = new System.Drawing.Point(706, 6);
+            this.cmdGetID.Name = "cmdGetID";
+            this.cmdGetID.Size = new System.Drawing.Size(75, 35);
+            this.cmdGetID.TabIndex = 9;
+            this.cmdGetID.Text = " ID";
+            this.cmdGetID.UseVisualStyleBackColor = true;
+            this.cmdGetID.Click += new System.EventHandler(this.cmdGetID_Click);
+            // 
+            // btnGetPriorFolder
+            // 
+            this.btnGetPriorFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnGetPriorFolder.Enabled = false;
+            this.btnGetPriorFolder.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Move_Up;
+            this.btnGetPriorFolder.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnGetPriorFolder.Location = new System.Drawing.Point(623, 6);
+            this.btnGetPriorFolder.Name = "btnGetPriorFolder";
+            this.btnGetPriorFolder.Size = new System.Drawing.Size(77, 35);
+            this.btnGetPriorFolder.TabIndex = 8;
+            this.btnGetPriorFolder.Text = " Up";
+            this.btnGetPriorFolder.UseVisualStyleBackColor = true;
+            this.btnGetPriorFolder.Click += new System.EventHandler(this.GetPriorFolder_Click);
+            // 
+            // cmdGetFolderContents
+            // 
+            this.cmdGetFolderContents.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdGetFolderContents.Enabled = false;
+            this.cmdGetFolderContents.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
+            this.cmdGetFolderContents.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cmdGetFolderContents.Location = new System.Drawing.Point(542, 6);
+            this.cmdGetFolderContents.Name = "cmdGetFolderContents";
+            this.cmdGetFolderContents.Size = new System.Drawing.Size(75, 35);
+            this.cmdGetFolderContents.TabIndex = 5;
+            this.cmdGetFolderContents.Text = " Get";
+            this.cmdGetFolderContents.UseVisualStyleBackColor = true;
+            this.cmdGetFolderContents.Click += new System.EventHandler(this.cmdGetFolderContents_Click);
+            // 
+            // toolStripConnectionSecrets
+            // 
+            this.toolStripConnectionSecrets.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripConnectionSecrets.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveCurrentSecretsAsToolStripMenuItem,
+            this.loadSecretsFromToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.toolStripTxtConnectionNow});
+            this.toolStripConnectionSecrets.Image = ((System.Drawing.Image)(resources.GetObject("toolStripConnectionSecrets.Image")));
+            this.toolStripConnectionSecrets.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripConnectionSecrets.Name = "toolStripConnectionSecrets";
+            this.toolStripConnectionSecrets.Size = new System.Drawing.Size(37, 28);
+            this.toolStripConnectionSecrets.Text = "toolStripDropDownButton1";
+            // 
+            // saveCurrentSecretsAsToolStripMenuItem
+            // 
+            this.saveCurrentSecretsAsToolStripMenuItem.Enabled = false;
+            this.saveCurrentSecretsAsToolStripMenuItem.Name = "saveCurrentSecretsAsToolStripMenuItem";
+            this.saveCurrentSecretsAsToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.saveCurrentSecretsAsToolStripMenuItem.Text = "Save Current Secrets As...";
+            this.saveCurrentSecretsAsToolStripMenuItem.Click += new System.EventHandler(this.saveCurrentSecretsAsToolStripMenuItem_Click);
+            // 
+            // loadSecretsFromToolStripMenuItem
+            // 
+            this.loadSecretsFromToolStripMenuItem.Name = "loadSecretsFromToolStripMenuItem";
+            this.loadSecretsFromToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
+            this.loadSecretsFromToolStripMenuItem.Text = "Load Secrets from...";
+            this.loadSecretsFromToolStripMenuItem.Click += new System.EventHandler(this.loadSecretsFromToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(203, 6);
+            // 
+            // toolStripTxtConnectionNow
+            // 
+            this.toolStripTxtConnectionNow.Name = "toolStripTxtConnectionNow";
+            this.toolStripTxtConnectionNow.ReadOnly = true;
+            this.toolStripTxtConnectionNow.Size = new System.Drawing.Size(100, 23);
+            // 
+            // tsBtnPing
+            // 
+            this.tsBtnPing.Enabled = false;
+            this.tsBtnPing.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnPing.Image")));
+            this.tsBtnPing.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.tsBtnPing.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsBtnPing.Name = "tsBtnPing";
+            this.tsBtnPing.Size = new System.Drawing.Size(59, 28);
+            this.tsBtnPing.Text = "Ping";
+            this.tsBtnPing.Click += new System.EventHandler(this.tsBtnPing_Click);
+            // 
+            // tsBtnNewFolder
+            // 
+            this.tsBtnNewFolder.Image = ((System.Drawing.Image)(resources.GetObject("tsBtnNewFolder.Image")));
+            this.tsBtnNewFolder.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsBtnNewFolder.Name = "tsBtnNewFolder";
+            this.tsBtnNewFolder.Size = new System.Drawing.Size(82, 28);
+            this.tsBtnNewFolder.Text = "+ Folder:";
+            this.tsBtnNewFolder.Click += new System.EventHandler(this.tsBtnNewFolder_Click);
+            // 
+            // toolStripButton1
+            // 
+            this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
+            this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton1.Name = "toolStripButton1";
+            this.toolStripButton1.Size = new System.Drawing.Size(69, 28);
+            this.toolStripButton1.Text = " + Tag";
+            this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click_1);
+            // 
+            // tsBtnUpload
+            // 
+            this.tsBtnUpload.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.uploadOneFileToolStripMenuItem,
+            this.uploadSubtreeToolStripMenuItem});
+            this.tsBtnUpload.Image = global::Cloud_Element_Test_Form.Properties.Resources.External_Hard_Drive_Move_Up;
+            this.tsBtnUpload.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsBtnUpload.Name = "tsBtnUpload";
+            this.tsBtnUpload.Size = new System.Drawing.Size(99, 28);
+            this.tsBtnUpload.Text = "Uploading";
+            // 
+            // uploadOneFileToolStripMenuItem
+            // 
+            this.uploadOneFileToolStripMenuItem.Name = "uploadOneFileToolStripMenuItem";
+            this.uploadOneFileToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.uploadOneFileToolStripMenuItem.Text = "Upload one file ...";
+            this.uploadOneFileToolStripMenuItem.Click += new System.EventHandler(this.toolStripButton1_Click);
+            // 
+            // uploadSubtreeToolStripMenuItem
+            // 
+            this.uploadSubtreeToolStripMenuItem.Name = "uploadSubtreeToolStripMenuItem";
+            this.uploadSubtreeToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.uploadSubtreeToolStripMenuItem.Text = "Upload subtree ...";
+            this.uploadSubtreeToolStripMenuItem.Click += new System.EventHandler(this.uploadSubtreeToolStripMenuItem_Click);
+            // 
+            // sizeDataGridViewTextBoxColumn
+            // 
+            this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "size";
+            this.sizeDataGridViewTextBoxColumn.HeaderText = "size";
+            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
+            this.sizeDataGridViewTextBoxColumn.Width = 5;
+            // 
+            // createdDateDataGridViewTextBoxColumn
+            // 
+            this.createdDateDataGridViewTextBoxColumn.DataPropertyName = "createdDate";
+            this.createdDateDataGridViewTextBoxColumn.HeaderText = "createdDate";
+            this.createdDateDataGridViewTextBoxColumn.Name = "createdDateDataGridViewTextBoxColumn";
+            // 
+            // modifiedDateDataGridViewTextBoxColumn
+            // 
+            this.modifiedDateDataGridViewTextBoxColumn.DataPropertyName = "modifiedDate";
+            this.modifiedDateDataGridViewTextBoxColumn.HeaderText = "modifiedDate";
+            this.modifiedDateDataGridViewTextBoxColumn.Name = "modifiedDateDataGridViewTextBoxColumn";
+            // 
+            // directoryDataGridViewCheckBoxColumn
+            // 
+            this.directoryDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.directoryDataGridViewCheckBoxColumn.DataPropertyName = "directory";
+            this.directoryDataGridViewCheckBoxColumn.HeaderText = "Folder";
+            this.directoryDataGridViewCheckBoxColumn.Name = "directoryDataGridViewCheckBoxColumn";
+            this.directoryDataGridViewCheckBoxColumn.Width = 42;
+            // 
+            // pathDataGridViewTextBoxColumn
+            // 
+            this.pathDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.pathDataGridViewTextBoxColumn.DataPropertyName = "path";
+            this.pathDataGridViewTextBoxColumn.FillWeight = 55F;
+            this.pathDataGridViewTextBoxColumn.HeaderText = "path";
+            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
+            this.pathDataGridViewTextBoxColumn.Width = 53;
+            // 
+            // idDataGridViewTextBoxColumn
+            // 
+            this.idDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            this.idDataGridViewTextBoxColumn.DataPropertyName = "id";
+            this.idDataGridViewTextBoxColumn.HeaderText = "id";
+            this.idDataGridViewTextBoxColumn.Name = "idDataGridViewTextBoxColumn";
+            this.idDataGridViewTextBoxColumn.Width = 5;
+            // 
+            // cloudFileBindingSource
+            // 
+            this.cloudFileBindingSource.AllowNew = false;
+            this.cloudFileBindingSource.DataSource = typeof(Cloud_Elements_API.CloudFile);
+            // 
+            // folderBrowserUploadTree
+            // 
+            this.folderBrowserUploadTree.Description = "Select folder to begin tree upload";
+            this.folderBrowserUploadTree.ShowNewFolderButton = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -855,12 +878,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgFolderContents)).EndInit();
             this.FolderRowContextMenu.ResumeLayout(false);
             this.FolderRowContextMenu.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.tpLog.ResumeLayout(false);
             this.tpLog.PerformLayout();
             this.tpTest.ResumeLayout(false);
             this.tpTest.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spnRequestsPerSecond)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cloudFileBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -900,7 +923,6 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.ToolStripMenuItem tsFileTagInfoMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripButton tsBtnUpload;
         private System.Windows.Forms.ToolStripButton tsBtnNewFolder;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
@@ -941,6 +963,10 @@
         private System.Windows.Forms.NumericUpDown spnRequestsPerSecond;
         private System.Windows.Forms.Button cmdGetID;
         private System.Windows.Forms.ToolStripMenuItem tsRemoveEmptyFolders;
+        private System.Windows.Forms.ToolStripDropDownButton tsBtnUpload;
+        private System.Windows.Forms.ToolStripMenuItem uploadOneFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem uploadSubtreeToolStripMenuItem;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserUploadTree;
     }
 }
 

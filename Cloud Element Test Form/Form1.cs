@@ -414,25 +414,69 @@ namespace Cloud_Element_Test_Form
             return result;
         }
 
-        private async void toolStripButton1_Click(object sender, EventArgs e)
+        private async void toolStripButton1_Click(object sender, EventArgs e) // upload one file
         {
             if (!HasGottenFolder()) return;
             if (openFileDialog1.ShowDialog() == DialogResult.Cancel) return;
-            var MIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(System.IO.Path.GetExtension(openFileDialog1.FileName));
-            string TargetPath = this.CurrentFolderPath;
-            string SourceFileName = System.IO.Path.GetFileName(openFileDialog1.FileName);
-            if (!TargetPath.EndsWith("/")) TargetPath += "/";
-            TargetPath += SourceFileName;
-            var sizeInBytes = new System.IO.FileInfo(openFileDialog1.FileName).Length;
+
             List<String> TagList = new List<String>();
             TagList.Add("sfCE.NET");
 
-            Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(openFileDialog1.OpenFile(), MIMEType,
-                                                        TargetPath, "Uploaded by .NET Connector Test Tool!",
-                                                        TagList.ToArray(), false, sizeInBytes);
+            await uploadFile( openFileDialog1.FileName, this.CurrentFolderPath, TagList ,"Uploaded by .NET Connector Test Tool!");
+        }
 
+       async private Task uploadFile(string sourceFileName, string targetPath, List<String> tagList, string description)
+        {
+            var MIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(System.IO.Path.GetExtension(sourceFileName));
+            StatusMsg("Uploading " + sourceFileName);
+            
+            string SourceFileName = System.IO.Path.GetFileName(sourceFileName);
+            if (!targetPath.EndsWith("/")) targetPath += "/";
+            targetPath += SourceFileName;
+           System.IO.FileInfo fInfo = new System.IO.FileInfo(sourceFileName);
+
+           var sizeInBytes = fInfo.Length;
+
+
+           Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(fInfo.OpenRead(), MIMEType,
+                                                        targetPath, description,
+                                                        tagList.ToArray(), false, sizeInBytes);
+
+           fInfo = null;
 
         }
+
+       async private Task uploadFolder(string sourcePath, string targetPath)
+       {
+           List<String> TagList = new List<String>();
+           foreach (var fn in System.IO.Directory.GetFiles(sourcePath))
+           {
+               await uploadFile( fn, targetPath, TagList, "");
+           }
+
+           string nestedPath;
+            foreach (var folderName in System.IO.Directory.GetDirectories(sourcePath))
+           {
+               nestedPath = string.Format("{0}/{1}",targetPath ,new System.IO.DirectoryInfo(folderName).Name);
+               await uploadFolder( folderName, nestedPath  );
+           }
+
+           
+            
+       }
+
+
+
+       private async void uploadSubtreeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!HasGottenFolder()) return;
+           
+            if (folderBrowserUploadTree.ShowDialog() == DialogResult.Cancel) return;
+
+         await   uploadFolder(folderBrowserUploadTree.SelectedPath, this.CurrentFolderPath);
+
+        }
+
 
         private async void tsBtnNewFolder_Click(object sender, EventArgs e)
         {
@@ -611,6 +655,7 @@ namespace Cloud_Element_Test_Form
             if (!chkWithTags.Checked) chkWithTags.Checked = true;
             await RefreshCurrentFolder();
         }
+
 
         private async void tsGetFileLink_Click(object sender, EventArgs e)
         {
@@ -814,6 +859,8 @@ namespace Cloud_Element_Test_Form
             StatusMsg("Folder scan ended, see test log for results.");
             TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
         }
+
+       
 
 
 
