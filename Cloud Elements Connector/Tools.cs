@@ -198,6 +198,12 @@ namespace Cloud_Elements_API
             oFs.Close();
         }
 
+        public static byte[] StringToByteArray(string theValue)
+        {
+            if (theValue == null) return (byte[])null;
+            return new UnicodeEncoding(false,false).GetBytes(theValue);
+        }
+
 
         /// -----------------------------------------------------------------------------
         ///<summary>

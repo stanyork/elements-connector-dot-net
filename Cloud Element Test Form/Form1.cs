@@ -421,37 +421,58 @@ namespace Cloud_Element_Test_Form
 
             List<String> TagList = new List<String>();
             TagList.Add("sfCE.NET");
-
-            await uploadFile( openFileDialog1.FileName, this.CurrentFolderPath, TagList ,"Uploaded by .NET Connector Test Tool!");
+            System.IO.FileInfo fInfo = new System.IO.FileInfo(openFileDialog1.FileName);
+            await uploadFile( fInfo, this.CurrentFolderPath, TagList ,"Uploaded by .NET Connector Test Tool!");
         }
 
-       async private Task uploadFile(string sourceFileName, string targetPath, List<String> tagList, string description)
+        async private Task uploadFile(System.IO.FileInfo sourceFile, string targetPath, List<String> tagList, string description)
         {
-            var MIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(System.IO.Path.GetExtension(sourceFileName));
-            StatusMsg("Uploading " + sourceFileName);
-            
-            string SourceFileName = System.IO.Path.GetFileName(sourceFileName);
+            var MIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(System.IO.Path.GetExtension(sourceFile.Name));
+            DateTime StartedAt = DateTime.Now;
+            StatusMsg("Uploading " + sourceFile.Name);
+
+            string SourceFileName = System.IO.Path.GetFileName(sourceFile.Name);
             if (!targetPath.EndsWith("/")) targetPath += "/";
             targetPath += SourceFileName;
-           System.IO.FileInfo fInfo = new System.IO.FileInfo(sourceFileName);
+           //System.IO.FileInfo fInfo = new System.IO.FileInfo(sourceFileName);
 
-           var sizeInBytes = fInfo.Length;
+            var sizeInBytes = sourceFile.Length;
 
 
-           Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(fInfo.OpenRead(), MIMEType,
+            Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(sourceFile.OpenRead(), MIMEType,
                                                         targetPath, description,
                                                         tagList.ToArray(), false, sizeInBytes);
 
-           fInfo = null;
-
+            sourceFile = null;
+            double uploadSeconds = DateTime.Now.Subtract( StartedAt).TotalSeconds;
+            StatusMsg(string.Format("Uploaded {0} in {1:F1}s, {2:F1} mb/s ", SourceFileName, uploadSeconds, (sizeInBytes / 1024.0) / uploadSeconds));
         }
 
        async private Task uploadFolder(string sourcePath, string targetPath)
        {
-           List<String> TagList = new List<String>();
+           List<String> TagList = new List<String>();  // unchanged in this method
+           TagList.Add("sfCETest.NET");
+           var HTMLMIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(".htm");
+           System.Text.StringBuilder FileList = new System.Text.StringBuilder();
            foreach (var fn in System.IO.Directory.GetFiles(sourcePath))
            {
-               await uploadFile( fn, targetPath, TagList, "");
+               System.IO.FileInfo fInfo = new System.IO.FileInfo(fn);
+               FileList.AppendFormat("<tr><td>{0}</td><td>{1:d} {1:t}</td><td>{2:d} {2:t}</td></tr>", fInfo.Name, fInfo.CreationTime, fInfo.LastWriteTime);
+               await uploadFile(fInfo, targetPath, TagList, "");
+           }
+           if (FileList.Length > 0){
+                System.Text.StringBuilder FolderMarker = new System.Text.StringBuilder();
+                FolderMarker.AppendFormat("<!DOCTYPE html><html><head><title>{0}</title></head><body>\n", targetPath);
+               FolderMarker.Append( "<h2>Original Creation and Modification dates for this folder</h2><hr /><table style='width:88%;'>");
+               FolderMarker.AppendFormat("<tr style='font-weight:bold;'><td>{0}</td><td>{1}</td><td>{2}</td></tr>", "File Name", "Created", "Last Write");
+               FolderMarker.Append(FileList);
+               FolderMarker.AppendFormat("</table><span style='font-size: 0.6em'>Uploaded {0:d} at {0:t}</span>",DateTime.Now);
+               FolderMarker.AppendLine("</body></html>");
+               byte[] ByteBuffer = System.Text.Encoding.ASCII.GetBytes(FolderMarker.ToString());
+               System.IO.MemoryStream logFileStream = new System.IO.MemoryStream( ByteBuffer );
+               Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(logFileStream, HTMLMIMEType,
+                                                         targetPath + "/Uploaded File Date Information.html","",
+                                                         TagList.ToArray(), false, ByteBuffer.Length);
            }
 
            string nestedPath;

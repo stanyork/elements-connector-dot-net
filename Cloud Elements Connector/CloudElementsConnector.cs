@@ -673,15 +673,25 @@ namespace Cloud_Elements_API
             // ref http://stackoverflow.com/questions/16416601/c-sharp-httpclient-4-5-multipart-form-data-upload
 
             var content = new MultipartFormDataContent(String.Format("----------{0:N}", Guid.NewGuid()));
-            var FileContentSection = new StreamContent(uploadSource, 16384);
+            var FileContentSection = new StreamContent(uploadSource, 32768);
             content.Add(FileContentSection);
             FileContentSection.Headers.ContentDisposition.Name = "file";
             FileContentSection.Headers.ContentDisposition.FileName = System.IO.Path.GetFileName(path);
             FileContentSection.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-
-
-            HttpResponseMessage response = await APIExecutePost(URL, content);
-            CloudFile Result = await response.Content.ReadAsAsync<CloudFile>();
+            HttpClient UseClient = CloneAPIClient();
+            CloudFile Result;
+            try
+            {
+                int msTimeout = (int)Math.Ceiling((sizeInBytes / 1024.0) * 16.0);
+                UseClient.Timeout = new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
+                HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
+                Result = await response.Content.ReadAsAsync<CloudFile>();
+            }
+            finally
+            {
+             //   APIClient.Timeout = WasTimeout;
+                UseClient.Dispose();
+            }
             return Result;
 
         }
@@ -732,6 +742,11 @@ namespace Cloud_Elements_API
         async Task<HttpResponseMessage> APIExecutePost(string URI, HttpContent content)
         {
             return await APIExecuteVerb(HttpVerb.Post, URI, content);
+        }
+
+        async Task<HttpResponseMessage> APIExecutePost(HttpClient withClient, string URI, HttpContent content)
+        {
+            return await APIExecuteVerb(withClient, HttpVerb.Post, URI, content);
         }
 
         async Task<HttpResponseMessage> APIExecutePatch(string URI, HttpContent content)
@@ -855,30 +870,45 @@ namespace Cloud_Elements_API
         /// <returns></returns>
         async Task<HttpResponseMessage> APIExecuteVerb(HttpVerb verb, string URI, HttpContent content)
         {
+            return await APIExecuteVerb(APIClient, verb, URI, content);
+        }
+
+
+        /// <summary>
+        /// Executes a cloud elements request.  Every request comes through here
+        /// </summary>
+        /// <param name="withClient">Instance of HttpClient</param>
+        /// <param name="verb">Get, Delete, Post, Patch</param>
+        /// <param name="URI"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        async Task<HttpResponseMessage> APIExecuteVerb(HttpClient withClient, HttpVerb verb, string URI, HttpContent content)
+        {
             ThrottleRequestsPerSecond(0);
             DateTime startms = DateTime.Now;
             lock (StaticLockObject) RequestCounter++;
             InstanceRequestCounter++;
             HttpResponseMessage response;
             Task<HttpResponseMessage> HttpRequestTask;
-            lock (APIClient) // not clear that this is required, but...
+            lock (withClient) // not clear that this is required, but...
             {
                 switch (verb)
                 {
                     case HttpVerb.Get:
-                        HttpRequestTask = APIClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
+                        HttpRequestTask = withClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
                         break;
                     case HttpVerb.Delete:
-                        HttpRequestTask = APIClient.DeleteAsync(URI);
+                        HttpRequestTask = withClient.DeleteAsync(URI);
                         break;
                     case HttpVerb.Post:
                         if (content == null) throw new ArgumentException("Post requests require content");
-                        HttpRequestTask = APIClient.PostAsync(URI, content);
+
+                        HttpRequestTask = withClient.PostAsync(URI, content);
                         break;
                     case HttpVerb.Patch:
                         if (content == null) throw new ArgumentException("Patch requests require content");
                         var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
-                        HttpRequestTask = APIClient.SendAsync(request);
+                        HttpRequestTask = withClient.SendAsync(request);
                         break;
                     default:
                         throw new ApplicationException("Unsupported verb");
@@ -925,7 +955,7 @@ namespace Cloud_Elements_API
                                             options.LastAutoLimit = options.LastRateExceeded;
                                             OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
                                         }
-                                        response = await APIExecuteVerb(verb, URI, content);
+                                        response = await APIExecuteVerb(withClient,verb, URI, content);
                                     }
                                 }
                             }
@@ -943,6 +973,13 @@ namespace Cloud_Elements_API
         {
             if (SimplifyLoggedURIs) rawURI = rawURI.Replace("%2F", "/");
             return rawURI;
+        }
+
+        HttpClient CloneAPIClient()
+        {
+            HttpClient client = NewHttpClient();
+            client.DefaultRequestHeaders.Authorization = AuthorizationData.GetHeaderValue();
+            return (client);
         }
 
         HttpClient NewHttpClient()
