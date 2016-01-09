@@ -682,7 +682,7 @@ namespace Cloud_Elements_API
             CloudFile Result;
             try
             {
-                int msTimeout = (int)Math.Ceiling((sizeInBytes / 1024.0) * 16.0);
+                int msTimeout = 98765 + (int)Math.Ceiling((sizeInBytes / 1024.0) * 16.0); // internal default is 100 seconds
                 UseClient.Timeout = new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
                 HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
                 Result = await response.Content.ReadAsAsync<CloudFile>();
