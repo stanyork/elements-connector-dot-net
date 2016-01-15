@@ -352,9 +352,10 @@ namespace Cloud_Element_Test_Form
                 if (!HasCurrentCloudFile(ref currentRow)) return;
 
                 StatusMsg("Requesting...");
-                Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(currentRow.id);
+                DateTime startAt = DateTime.Now;
+                Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(currentRow);
 
-                StatusMsg(string.Format(">> Get File Result: content-length: {0}; disposition: [{1}]", Result.ContentLength, Result.Disposition));
+                StatusMsg(string.Format(">> Get File Result: {2:F1}s for content-length: {0}; disposition: [{1}]", Result.ContentLength, Result.Disposition, DateTime.Now.Subtract(startAt).TotalSeconds));
                 string fn = System.IO.Path.Combine(WorkPath, Result.Disposition);
                 if (Result.Disposition.Length == 0)
                 {

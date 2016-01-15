@@ -623,11 +623,43 @@ namespace Cloud_Elements_API
 
         public async Task<FileContent> GetFile(string id)
         {
-            HttpResponseMessage response = await APIExecuteGet(string.Format("hubs/documents/files/{0}", System.Net.WebUtility.UrlEncode(id)));
-            FileContent Result = new FileContent(response);
-            Result.ContentStream = await response.Content.ReadAsStreamAsync();
-            return Result;
+            //HttpResponseMessage response = await APIExecuteGet(string.Format("hubs/documents/files/{0}", System.Net.WebUtility.UrlEncode(id)));
+            //FileContent Result = new FileContent(response);
+            //Result.ContentStream = await response.Content.ReadAsStreamAsync();
+            //return Result;
+            return await GetFile(id, 0);
         }
+
+        public async Task<FileContent> GetFile(CloudFile cf)
+        {
+            return await GetFile(cf.id, cf.size);
+        }
+
+        public async Task<FileContent> GetFile(string id, ulong size)
+        {
+
+            HttpClient UseClient = CloneAPIClient();
+            FileContent Result;
+            try
+            {
+                if (size > 0)
+                {
+                    UseClient.Timeout = UseClient.Timeout = CalculateTimeoutForBytesPerMS((long)size);
+                }
+                HttpResponseMessage response = await APIExecuteGet(UseClient,string.Format("hubs/documents/files/{0}", System.Net.WebUtility.UrlEncode(id)));
+                 Result = new FileContent(response);
+                Result.ContentStream = await response.Content.ReadAsStreamAsync();
+                
+            }
+            finally
+            {
+                //   APIClient.Timeout = WasTimeout;
+                UseClient.Dispose();
+            }
+            return Result;
+        
+        }
+
 
 
         /// <summary>
@@ -682,8 +714,7 @@ namespace Cloud_Elements_API
             CloudFile Result;
             try
             {
-                int msTimeout = 98765 + (int)Math.Ceiling((sizeInBytes / 1024.0) * 16.0); // internal default is 100 seconds
-                UseClient.Timeout = new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
+                UseClient.Timeout = CalculateTimeoutForBytesPerMS(sizeInBytes);
                 HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
                 Result = await response.Content.ReadAsAsync<CloudFile>();
             }
@@ -732,6 +763,11 @@ namespace Cloud_Elements_API
         async Task<HttpResponseMessage> APIExecuteGet(string URI)
         {
             return await APIExecuteVerb(HttpVerb.Get, URI);
+        }
+
+        async Task<HttpResponseMessage> APIExecuteGet(HttpClient withClient, string URI)
+        {
+            return await APIExecuteVerb(withClient, HttpVerb.Get, URI,null);
         }
 
         async Task<HttpResponseMessage> APIExecuteDelete(string URI)
@@ -786,6 +822,22 @@ namespace Cloud_Elements_API
         {
             return await APIExecuteVerb(verb, URI, null);
         }
+
+        readonly int minTimeOutMS = 99123;
+        private double MSperKB = 6.5;
+        private long HighWaterTimeout = 120000;
+        private TimeSpan CalculateTimeoutForBytesPerMS(long sizeInBytes)
+        {
+            int msTimeout = 98765 + (int)Math.Ceiling((sizeInBytes / 1024.0) * MSperKB);
+            if (msTimeout < minTimeOutMS) msTimeout += minTimeOutMS; // internal default is 100 seconds
+            if (msTimeout > HighWaterTimeout)
+            {
+                OnDiagTrace(string.Format("ce(?) New high request timeout {0:F1}s for {1:F1}MB" ,msTimeout / 1000, sizeInBytes / 1024.0 / 1024.0));
+                HighWaterTimeout = msTimeout;
+            }
+            return new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
+        }
+
 
         /// <summary>
         /// Manages the requests per second, adding delays if/when needed
