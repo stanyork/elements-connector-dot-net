@@ -785,8 +785,8 @@ namespace Cloud_Element_Test_Form
 
         private async void cmdTestButton_Click(object sender, EventArgs e)
         {
-            Task UnitTestTask = RunUnitTest();
             cmdTestButton.Enabled = false;
+            Task UnitTestTask = RunUnitTest();
             await UnitTestTask;
 
             Boolean broken = UnitTestTask.IsFaulted;

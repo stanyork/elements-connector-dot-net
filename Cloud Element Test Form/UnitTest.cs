@@ -296,13 +296,14 @@ namespace Cloud_Element_Test_Form
 
             //EIGHTH TEST: Download File
             TestStatusMsg("Test: Downloading file...");
+            System.IO.Stream Target = null;
             try
             {
                 string TargetPath = tfoldername + string.Format("/SFCE_test_file_{0}.txt", "1");
                 Cloud_Elements_API.CloudFile FileRow = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, TargetPath);
                 if (FileRow != null)
                 {
-                    Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(FileRow.id);
+                    Cloud_Elements_API.FileContent Result = await APIConnector.GetFile(FileRow);
                     string fn = System.IO.Path.Combine(WorkPath, Result.Disposition);
                     if (!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(fn)))
                     {
@@ -312,10 +313,12 @@ namespace Cloud_Element_Test_Form
                     {
                         System.IO.File.Delete(fn);
                     }
-                    System.IO.Stream Target = new System.IO.FileStream(fn, System.IO.FileMode.Create, System.Security.AccessControl.FileSystemRights.FullControl, System.IO.FileShare.None, 16384, System.IO.FileOptions.Asynchronous, null);
+                    Target = new System.IO.FileStream(fn, System.IO.FileMode.Create, System.Security.AccessControl.FileSystemRights.FullControl, System.IO.FileShare.None, 16384, System.IO.FileOptions.Asynchronous, null);
                     await Cloud_Elements_API.Tools.StreamCopyWithProgress(Result.ContentStream, Target, Result.ContentLength);
                     Result.ContentStream.Close();
+                    Result.Dispose();
                     Target.Close();
+                    Target = null;
                     System.IO.FileInfo finfo = new System.IO.FileInfo(fn);
                     TestStatusMsg(string.Format("Stored {1}: {0}", Cloud_Elements_API.Tools.SizeInBytesToString(finfo.Length), Result.Disposition));
                     int DownloadedHash = Cloud_Elements_API.Tools.FileToString(fn).GetHashCode();
@@ -332,7 +335,11 @@ namespace Cloud_Element_Test_Form
             }
             catch (Exception ed)
             {
-                TestStatusMsg("File download failed: " + ed.Message);
+                TestStatusMsg("*** >>>> File download failed: " + ed.Message);
+            }
+            finally
+            {
+                if (Target != null) Target.Close();
             }
 
 
@@ -395,8 +402,16 @@ namespace Cloud_Element_Test_Form
             {
                 if (System.IO.File.Exists(fn))
                 {
-                    System.IO.File.Delete(fn);
-                    TestStatusMsg("Downloaded test file deleted");
+                    try
+                    {
+                        System.IO.File.Delete(fn);
+                        TestStatusMsg("Downloaded test file deleted");
+                    }
+                    catch (System.IO.IOException ix)
+                    {
+                        TestStatusMsg("Downloaded test file NOT deleted - " + ix.Message);
+                    }
+
                 }
             }
 
@@ -409,7 +424,7 @@ namespace Cloud_Element_Test_Form
                 //if exists, delete
                 try
                 {
-                    bool Result = await APIConnector.DeleteFolder( Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path ,  tfoldername, false);
+                    bool Result = await APIConnector.DeleteFolder(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, tfoldername, false);
                     TestStatusMsg("Test folder deleted");
                 }
                 catch (Exception e)

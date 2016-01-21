@@ -38,6 +38,7 @@ namespace Cloud_Elements_API
 
         public static bool WriteDiagTrace = true;
         public static bool SimplifyLoggedURIs = true;
+        public static int MaxTimeOutMS = 840000; //  14 minutes
         public static TraceLevel DiagOutputLevel = TraceLevel.NonSuccess;
         public delegate void DiagTraceEventHanlder(object sender, string info);
         public event DiagTraceEventHanlder DiagTrace;
@@ -647,14 +648,15 @@ namespace Cloud_Elements_API
                     UseClient.Timeout = UseClient.Timeout = CalculateTimeoutForBytesPerMS((long)size);
                 }
                 HttpResponseMessage response = await APIExecuteGet(UseClient,string.Format("hubs/documents/files/{0}", System.Net.WebUtility.UrlEncode(id)));
-                 Result = new FileContent(response);
+                Result = new FileContent(response, UseClient);
                 Result.ContentStream = await response.Content.ReadAsStreamAsync();
                 
             }
             finally
             {
+                // note: cannot dispose the HttpClient until the stream is consumed, so will happen later
                 //   APIClient.Timeout = WasTimeout;
-                UseClient.Dispose();
+                //  UseClient.Dispose();
             }
             return Result;
         
@@ -824,12 +826,14 @@ namespace Cloud_Elements_API
         }
 
         readonly int minTimeOutMS = 99123;
+         
         private double MSperKB = 6.5;
         private long HighWaterTimeout = 120000;
         private TimeSpan CalculateTimeoutForBytesPerMS(long sizeInBytes)
         {
-            int msTimeout = 98765 + (int)Math.Ceiling((sizeInBytes / 1024.0) * MSperKB);
+            int msTimeout =   (int)Math.Ceiling((sizeInBytes / 1024.0) * MSperKB);
             if (msTimeout < minTimeOutMS) msTimeout += minTimeOutMS; // internal default is 100 seconds
+            if (msTimeout > MaxTimeOutMS) msTimeout = MaxTimeOutMS;
             if (msTimeout > HighWaterTimeout)
             {
                 OnDiagTrace(string.Format("ce(?) New high request timeout {0:F1}s for {1:F1}MB" ,msTimeout / 1000, sizeInBytes / 1024.0 / 1024.0));
@@ -973,7 +977,7 @@ namespace Cloud_Elements_API
             LastFailureInformation = "";
             if ((!response.IsSuccessStatusCode) || (DiagOutputLevel > TraceLevel.NonSuccess))
             {
-                string traceInfo = string.Format("ce({0},{1}) s={3:F1}; status={2}", verb, URIForLogging(URI), response.StatusCode, msUsed / 1000.0);
+                string traceInfo = string.Format("ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), response.StatusCode, msUsed / 1000.0);
                 if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
                 {
                     Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
@@ -1162,18 +1166,43 @@ namespace Cloud_Elements_API
         public Int64 used; //  optional),
     }
 
-    public class FileContent
+    public class FileContent : IDisposable
     {
         public readonly long ContentLength;
         public readonly string Disposition;
         public System.IO.Stream ContentStream;
-        public FileContent(HttpResponseMessage response)
+        private HttpClient ViaClient;
+        public FileContent(HttpResponseMessage response, HttpClient viaClient)
         {
             ContentLength = 0;
             if (response.Content.Headers.ContentLength != null) ContentLength = (long)response.Content.Headers.ContentLength;
             Disposition = "";
+            ViaClient = viaClient;
             if (response.Content.Headers.ContentDisposition != null) Disposition = (string)response.Content.Headers.ContentDisposition.FileName;
         }
+        public override string ToString()
+        {
+            return string.Format("{0}",Disposition);
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (ViaClient != null)
+                {
+                    ViaClient.Dispose();
+                    ViaClient = null;
+                }
+            }
+            // free native resources if there are any.
+        }
+
     }
 
 }
