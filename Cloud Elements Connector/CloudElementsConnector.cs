@@ -172,10 +172,13 @@ namespace Cloud_Elements_API
         /// <returns></returns>
         public async Task<Pong> Ping()
         {
-            HttpResponseMessage response = await APIExecuteGet("hubs/documents/ping");
+            HttpClient UseClient = CloneAPIClient();
+            HttpResponseMessage response = await APIExecuteGet(UseClient,"hubs/documents/ping");
             Pong ResultPong = await response.Content.ReadAsAsync<Pong>();
             Endpoint = ResultPong.endpoint;
             AssureEnpointControlData(Endpoint);
+            UseClient.Dispose();
+            UseClient = null;
             return ResultPong;
         }
 
@@ -274,8 +277,11 @@ namespace Cloud_Elements_API
         public async Task<CloudStorage> GetStorageAvailable()
         {
             CloudStorage Result;
-            HttpResponseMessage response = await APIExecuteGet("hubs/documents/storage");
+            HttpClient UseClient = CloneAPIClient();
+            HttpResponseMessage response = await APIExecuteGet(UseClient,"hubs/documents/storage");
             Result = await response.Content.ReadAsAsync<CloudStorage>();
+            UseClient.Dispose();
+            UseClient = null;
             return Result;
         }
 
@@ -291,8 +297,10 @@ namespace Cloud_Elements_API
         {
             CloudFile Result;
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             string URLEntryType = "files";
+
             if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
             switch (fileSpecType)
             {
@@ -306,8 +314,11 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
             RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType,withRaw);
-            response = await APIExecuteGet(RequestURL);
+            response = await APIExecuteGet(UseClient, RequestURL);
             Result = await response.Content.ReadAsAsync<CloudFile>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return Result;
         }
 
@@ -327,6 +338,7 @@ namespace Cloud_Elements_API
         {
 
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             string URLEntryType = "files";
             if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
@@ -344,8 +356,11 @@ namespace Cloud_Elements_API
 
             RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
             var content = CloudFileRequestContent(fileData);
-            response = await APIExecutePatch(RequestURL, content);
+            response = await APIExecutePatch(UseClient, RequestURL, content);
             fileData = await response.Content.ReadAsAsync<CloudFile>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return fileData;
         }
         #endregion
@@ -354,6 +369,7 @@ namespace Cloud_Elements_API
         public async Task<List<CloudFile>> ListFolderContents(FileSpecificationType fileSpecType, string path, bool withTags)
         {
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             switch (fileSpecType)
             {
@@ -367,8 +383,11 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteGet(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(path), withTags));
+            response = await APIExecuteGet(UseClient, string.Format(RequestURL, System.Net.WebUtility.UrlEncode(path), withTags));
             List<CloudFile> ResultList = await response.Content.ReadAsAsync<List<CloudFile>>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return ResultList;
         }
 
@@ -389,6 +408,7 @@ namespace Cloud_Elements_API
         {
 
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             string URLEntryType = "files";
             if (entryType == DirectoryEntryType.Folder) URLEntryType = "folders";
@@ -408,8 +428,11 @@ namespace Cloud_Elements_API
             CloudFile fileData = new CloudFile();
             fileData.path = targetPath;
             var content = CloudFileRequestContent(fileData);
-            response = await APIExecutePost(RequestURL, content);
+            response = await APIExecutePost(UseClient, RequestURL, content);
             fileData = await response.Content.ReadAsAsync<CloudFile>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return fileData;
         }
 
@@ -437,14 +460,17 @@ namespace Cloud_Elements_API
         public async Task<CloudFile> CreateFolder(CloudFile newFolder)
         {
             string URL = "hubs/documents/folders";
+            HttpClient UseClient = CloneAPIClient();
 
             if (!newFolder.path.StartsWith("/")) throw new ArgumentException("Path must begin with a slash");
 
             var content = CloudFileRequestContent(newFolder);
-            HttpResponseMessage response = await APIExecutePost(URL, content);
+            HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
             CloudFile Result = await response.Content.ReadAsAsync<CloudFile>();
-            return Result;
+            UseClient.Dispose();
+            UseClient = null;
 
+            return Result;
         }
 
         
@@ -461,6 +487,7 @@ namespace Cloud_Elements_API
         {
             bool Result;
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
 
             switch (fileSpecType)
@@ -475,7 +502,9 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteDelete(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            response = await APIExecuteDelete(UseClient,string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            UseClient.Dispose();
+            UseClient = null;
             Result = true;
             return Result;
         }
@@ -526,6 +555,7 @@ namespace Cloud_Elements_API
         {
             bool Result;
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
 
             switch (fileSpecType)
@@ -540,8 +570,11 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteDelete(string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            response = await APIExecuteDelete(UseClient,string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
             Result = true;
+            UseClient.Dispose();
+            UseClient = null;
+
             return Result;
         }
 
@@ -559,6 +592,7 @@ namespace Cloud_Elements_API
         {
             CloudLink Result;
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             switch (fileSpecType)
             {
@@ -571,8 +605,11 @@ namespace Cloud_Elements_API
                 default:
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
-            response = await APIExecuteGet(RequestURL);
+            response = await APIExecuteGet(UseClient,RequestURL);
             Result = await response.Content.ReadAsAsync<CloudLink>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return Result;
         }
 
@@ -603,6 +640,7 @@ namespace Cloud_Elements_API
         {
 
             HttpResponseMessage response;
+            HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             switch (fileSpecType)
             {
@@ -617,8 +655,11 @@ namespace Cloud_Elements_API
             }
 
             var content = CloudFileRequestContent(fileData);
-            response = await APIExecutePatch(RequestURL, content);
+            response = await APIExecutePatch(UseClient, RequestURL, content);
             fileData = await response.Content.ReadAsAsync<CloudFile>();
+            UseClient.Dispose();
+            UseClient = null;
+
             return fileData;
         }
 
@@ -772,9 +813,9 @@ namespace Cloud_Elements_API
             return await APIExecuteVerb(withClient, HttpVerb.Get, URI,null);
         }
 
-        async Task<HttpResponseMessage> APIExecuteDelete(string URI)
+        async Task<HttpResponseMessage> APIExecuteDelete(HttpClient withClient,string URI)
         {
-            return await APIExecuteVerb(HttpVerb.Delete, URI, null);
+            return await APIExecuteVerb(withClient,HttpVerb.Delete, URI, null);
         }
 
         async Task<HttpResponseMessage> APIExecutePost(string URI, HttpContent content)
@@ -787,9 +828,9 @@ namespace Cloud_Elements_API
             return await APIExecuteVerb(withClient, HttpVerb.Post, URI, content);
         }
 
-        async Task<HttpResponseMessage> APIExecutePatch(string URI, HttpContent content)
+        async Task<HttpResponseMessage> APIExecutePatch(HttpClient withClient, string URI, HttpContent content)
         {
-            return await APIExecuteVerb(HttpVerb.Patch, URI, content);
+            return await APIExecuteVerb(withClient, HttpVerb.Patch, URI, content);
         }
 
         enum HttpVerb
@@ -859,7 +900,7 @@ namespace Cloud_Elements_API
                 System.Threading.Thread.Sleep(128);
                 return;
             }
-            if (options.MaxRqPerSecond <= 0) return;
+            if ((options.MaxRqPerSecond <= 0) && (forcedMS <= 0)) return;
             int delayMS = 0;
             double RequestCountSinceBaseline;
             DateTime BaselineRequestAt;
@@ -882,7 +923,11 @@ namespace Cloud_Elements_API
                         if (options.LogHighwaterThroughput) OnDiagTrace(string.Format("ce(throughput) [{0}] reached {1:F2}r/s", Endpoint, RecentReqPerSecond));
                     }
 
-                    if (RecentReqPerSecond >= options.MaxRqPerSecond) delayMS = (int)Math.Ceiling(1000.0 / options.MaxRqPerSecond);
+                    if (RecentReqPerSecond >= options.MaxRqPerSecond)
+                    {
+                        delayMS = (int)Math.Ceiling((1000.0 / options.MaxRqPerSecond) * (RecentReqPerSecond - options.MaxRqPerSecond));
+                        if (delayMS > 3333) delayMS = 3333;
+                    }
                     else if ((RecentReqPerSecond > 1) && (RecentReqPerSecond > (options.MaxRqPerSecond / 2)))
                     {
                         delayMS = (int)Math.Ceiling((1000.0 / options.MaxRqPerSecond) * (RecentReqPerSecond / options.MaxRqPerSecond));
@@ -970,8 +1015,20 @@ namespace Cloud_Elements_API
                         throw new ApplicationException("Unsupported verb");
                 }
             }
-            response = await HttpRequestTask;
-            double msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
+            double msUsed;
+            try
+            {
+
+                response = await HttpRequestTask;
+            }
+            catch (Exception ex)
+            {
+                msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
+                string traceInfo = string.Format("<!> ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), ex.Message, msUsed / 1000.0);
+                OnDiagTrace(traceInfo);
+                throw ex;
+            }
+            msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
             lock (StaticLockObject) TotalRequestMS += msUsed;
             InstanceTotalRequestMS += msUsed;
             LastFailureInformation = "";
@@ -999,11 +1056,12 @@ namespace Cloud_Elements_API
                                 if (providerMessage.IndexOf("rate limit exceeded", StringComparison.CurrentCultureIgnoreCase) > 0)
                                 {
                                     EndpointOptions options;
-                                    if (EndpointSettings.ContainsKey(Endpoint))
+                                    if (EndpointSettings.ContainsKey(Endpoint))                                   
                                     {
-                                        ThrottleRequestsPerSecond(2468);
+                                        DateTime lre = DateTime.Now;
+                                          ThrottleRequestsPerSecond(2468); 
                                         options = EndpointSettings[Endpoint];
-                                        options.LastRateExceeded = DateTime.Now;
+                                        options.LastRateExceeded = lre;
                                         if ((options.MaxRqPerSecond <= 0) || (options.MaxRqPerSecond > options.HighwaterGeneratedRequestsPerSecond)) options.MaxRqPerSecond = (int)options.HighwaterGeneratedRequestsPerSecond;
                                         if ((options.MaxRqPerSecond > 2) && (DateTime.Now.Subtract(options.LastAutoLimit).TotalSeconds > 1))
                                         {
@@ -1011,6 +1069,7 @@ namespace Cloud_Elements_API
                                             options.LastAutoLimit = options.LastRateExceeded;
                                             OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
                                         }
+                                        if (DateTime.Now.Subtract(lre).TotalSeconds < 2.4) throw new ApplicationException("Rate throttle failed!");
                                         response = await APIExecuteVerb(withClient,verb, URI, content);
                                     }
                                 }
