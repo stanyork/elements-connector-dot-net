@@ -15,6 +15,14 @@ namespace Cloud_Element_Test_Form
 
         public string FileID = "";
 
+        public void SetFNMode()
+        {
+            this.Text = "File Path of Cloud File to Get";
+            this.txtID.Text = "Path";
+        }
+
+
+
         public frmGetCloudFileID()
         {
             InitializeComponent();
@@ -24,6 +32,11 @@ namespace Cloud_Element_Test_Form
         {
             FileID = txtID.Text.Trim();
             Close();
+        }
+
+        private void frmGetCloudFileID_Load(object sender, EventArgs e)
+        {
+            txtID.Focus();
         }
     }
 }

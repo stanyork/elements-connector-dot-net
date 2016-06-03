@@ -14,6 +14,18 @@ namespace Cloud_Elements_API
         public static event ProgressEventHandler Progress;
         public delegate void ProgressEventHandler(object sender, int Pct);
 
+        public static string UrlEncodeSpacesAs20(string input)
+        {
+            return System.Net.WebUtility.UrlEncode(input).Replace("+", "%20");
+        }
+
+        public static string UrlEncode(string input)
+        {
+            return System.Net.WebUtility.UrlEncode(input);
+        }
+
+
+
         /// <summary>
         /// Copies potentially large stream, raising event as percent changes
         /// </summary>

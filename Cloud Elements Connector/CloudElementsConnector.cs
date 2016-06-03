@@ -38,7 +38,7 @@ namespace Cloud_Elements_API
 
         public static bool WriteDiagTrace = true;
         public static bool SimplifyLoggedURIs = true;
-        public static int MaxTimeOutMS = 840000; //  14 minutes
+        public static int MaxTimeOutMS = 1680000; //  28 minutes
         public static TraceLevel DiagOutputLevel = TraceLevel.NonSuccess;
         public delegate void DiagTraceEventHanlder(object sender, string info);
         public event DiagTraceEventHanlder DiagTrace;
@@ -313,7 +313,8 @@ namespace Cloud_Elements_API
                 default:
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
-            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType,withRaw);
+            RequestURL = string.Format(RequestURL, Tools.UrlEncode(identifier), URLEntryType,withRaw);
+
             response = await APIExecuteGet(UseClient, RequestURL);
             Result = await response.Content.ReadAsAsync<CloudFile>();
             UseClient.Dispose();
@@ -354,7 +355,7 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
 
-            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            RequestURL = string.Format(RequestURL, Tools.UrlEncode(identifier), URLEntryType);
             var content = CloudFileRequestContent(fileData);
             response = await APIExecutePatch(UseClient, RequestURL, content);
             fileData = await response.Content.ReadAsAsync<CloudFile>();
@@ -366,24 +367,47 @@ namespace Cloud_Elements_API
         #endregion
 
         #region "documents/folders/..."
+        /// <summary>
+        /// Returns a list of (up to 2^31) CloudFile objects
+        /// </summary>
+        /// <param name="fileSpecType"></param>
+        /// <param name="path"></param>
+        /// <param name="withTags"></param>
+        /// <returns></returns>
         public async Task<List<CloudFile>> ListFolderContents(FileSpecificationType fileSpecType, string path, bool withTags)
+        {
+            return await ListFolderContents(fileSpecType, path, int.MaxValue, 1, withTags);
+        }
+
+        /// <summary>
+        /// Returns a partial list of files in the specified folder
+        /// </summary>
+        /// <param name="fileSpecType">ID or Path</param>
+        /// <param name="path"></param>
+        /// <param name="pageSize">from 10 to int.MaxValue</param>
+        /// <param name="pageNum">from 1 to n</param>
+        /// <param name="withTags"></param>
+        /// <returns></returns>
+        public async Task<List<CloudFile>> ListFolderContents(FileSpecificationType fileSpecType, string path, int pageSize, int pageNum ,bool withTags)
         {
             HttpResponseMessage response;
             HttpClient UseClient = CloneAPIClient();
             string RequestURL;
+            if (pageSize < 10) pageSize = 10;
+            if (pageNum < 1) pageNum = 1;
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL = "hubs/documents/folders/{0}/contents?&fetchTags={1}";
+                    RequestURL = "hubs/documents/folders/{0}/contents?&fetchTags={1}&pagesize={2}&page={3}";
                     break;
                 case FileSpecificationType.Path:
-                    RequestURL = "hubs/documents/folders/contents?path={0}&fetchTags={1}";
+                    RequestURL = "hubs/documents/folders/contents?path={0}&fetchTags={1}&pagesize={2}&page={3}";
                     break;
                 default:
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteGet(UseClient, string.Format(RequestURL, System.Net.WebUtility.UrlEncode(path), withTags));
+            response = await APIExecuteGet(UseClient, string.Format(RequestURL, Tools.UrlEncode(path), withTags, pageSize, pageNum));
             List<CloudFile> ResultList = await response.Content.ReadAsAsync<List<CloudFile>>();
             UseClient.Dispose();
             UseClient = null;
@@ -424,7 +448,7 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
             }
 
-            RequestURL = string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), URLEntryType);
+            RequestURL = string.Format(RequestURL, Tools.UrlEncode(identifier), URLEntryType);
             CloudFile fileData = new CloudFile();
             fileData.path = targetPath;
             var content = CloudFileRequestContent(fileData);
@@ -502,7 +526,7 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteDelete(UseClient,string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            response = await APIExecuteDelete(UseClient, string.Format(RequestURL, Tools.UrlEncode(identifier), emptyTrash));
             UseClient.Dispose();
             UseClient = null;
             Result = true;
@@ -570,7 +594,7 @@ namespace Cloud_Elements_API
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
             }
 
-            response = await APIExecuteDelete(UseClient,string.Format(RequestURL, System.Net.WebUtility.UrlEncode(identifier), emptyTrash));
+            response = await APIExecuteDelete(UseClient, string.Format(RequestURL, Tools.UrlEncode(identifier), emptyTrash));
             Result = true;
             UseClient.Dispose();
             UseClient = null;
@@ -597,10 +621,10 @@ namespace Cloud_Elements_API
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL = string.Format("hubs/documents/files/{0}/links", System.Net.WebUtility.UrlEncode(identifier));
+                    RequestURL = string.Format("hubs/documents/files/{0}/links", Tools.UrlEncode(identifier));
                     break;
                 case FileSpecificationType.Path:
-                    RequestURL = string.Format("hubs/documents/files/links?path={0}", System.Net.WebUtility.UrlEncode(identifier));
+                    RequestURL = string.Format("hubs/documents/files/links?path={0}", Tools.UrlEncode(identifier));
                     break;
                 default:
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
@@ -645,10 +669,10 @@ namespace Cloud_Elements_API
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL = string.Format("hubs/documents/files/{0}/metadata", System.Net.WebUtility.UrlEncode(identifier));
+                    RequestURL = string.Format("hubs/documents/files/{0}/metadata", Tools.UrlEncode(identifier));
                     break;
                 case FileSpecificationType.Path:
-                    RequestURL = string.Format("hubs/documents/files/metadata?path={0}", System.Net.WebUtility.UrlEncode(identifier));
+                    RequestURL = string.Format("hubs/documents/files/metadata?path={0}", Tools.UrlEncode(identifier));
                     break;
                 default:
                     throw new ArgumentException("unsupported File Specification Type - " + fileSpecType.ToString());
@@ -723,7 +747,7 @@ namespace Cloud_Elements_API
                                                 long sizeInBytes)
         {
             string URL = string.Format("hubs/documents/files?path={0}&description={1}"
-                                        , System.Net.WebUtility.UrlEncode(path)
+                                        , Tools.UrlEncode(path)
                                         , System.Net.WebUtility.UrlEncode(description)
                                         );
             // neither is RFC3986 compliant
@@ -757,9 +781,11 @@ namespace Cloud_Elements_API
             CloudFile Result;
             try
             {
+                DateTime SendStartedAt = DateTime.Now;
                 UseClient.Timeout = CalculateTimeoutForBytesPerMS(sizeInBytes);
                 HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
                 Result = await response.Content.ReadAsAsync<CloudFile>();
+                UpdateMSperKB( DateTime.Now.Subtract(SendStartedAt), sizeInBytes);
             }
             finally
             {
@@ -868,8 +894,11 @@ namespace Cloud_Elements_API
 
         readonly int minTimeOutMS = 99123;
          
-        private double MSperKB = 6.5;
+        private double MSperKB = 2.5;
+        private double OneMB = (1024.0 * 1024.0);
         private long HighWaterTimeout = 120000;
+        private double SlowestKBRate = 8;
+        private double FastestKBRate = 5;
         private TimeSpan CalculateTimeoutForBytesPerMS(long sizeInBytes)
         {
             int msTimeout =   (int)Math.Ceiling((sizeInBytes / 1024.0) * MSperKB);
@@ -882,6 +911,22 @@ namespace Cloud_Elements_API
             }
             return new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
         }
+
+        private void UpdateMSperKB(TimeSpan timeUsed, long sizeInBytes)
+        {
+            if (sizeInBytes < (6.0*OneMB)) return;
+            int msPerKBUsed = (int)Math.Ceiling(timeUsed.TotalMilliseconds / (sizeInBytes / 1024.0) );
+            if (msPerKBUsed > 1000) return;
+            if (msPerKBUsed < 2) return;
+            if ((msPerKBUsed < FastestKBRate) || (msPerKBUsed > SlowestKBRate)) {
+                OnDiagTrace(string.Format("ce(?) New throughput rate {0:F1}ms/KB", msPerKBUsed));
+                if (msPerKBUsed < FastestKBRate)  FastestKBRate = msPerKBUsed;
+                if (msPerKBUsed > SlowestKBRate) SlowestKBRate  = msPerKBUsed;
+            }
+            if (msPerKBUsed < MSperKB) return;
+            MSperKB = msPerKBUsed;
+        }
+
 
 
         /// <summary>

@@ -119,6 +119,7 @@ namespace Cloud_Element_Test_Form
             saveCurrentSecretsAsToolStripMenuItem.Enabled = APIIsConnected;
             cmdGetFolderContents.Enabled = APIIsConnected;
             cmdGetID.Enabled = APIIsConnected;
+            cmdGetFN.Enabled = APIIsConnected;
 
             if (APIIsConnected) tabControl1.SelectedTab = tpContents;
             else tabControl1.SelectedTab = tpAuthorize;
@@ -880,6 +881,49 @@ namespace Cloud_Element_Test_Form
             await scanForEmptyFolders(ScanOptions, currentRow);
             StatusMsg("Folder scan ended, see test log for results.");
             TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
+        }
+
+        private async void cmdGetFN_click(object sender, EventArgs e) 
+        {
+            frmGetCloudFileID frmGet = new frmGetCloudFileID();
+            frmGet.SetFNMode();
+            cmdGetFN.Enabled = false;
+            if (frmGet.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Cloud_Elements_API.CloudElementsConnector.TraceLevel diagTraceWas = Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel;
+                try
+                {
+                    TestStatusMsg("Checking: " + frmGet.FileID);
+                    Cloud_Elements_API.CloudFile CloudFileInfoByID;
+                    Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = Cloud_Elements_API.CloudElementsConnector.TraceLevel.All;
+                    CloudFileInfoByID = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, frmGet.FileID);
+                    if (CloudFileInfoByID == null) StatusMsg("Nothing Returned!  (not expecting not found)");
+                    else
+                    {
+                        if (CloudFileInfoByID.directory)
+                        {
+                            txtFolderPath.Text = CloudFileInfoByID.path;
+                        }
+                        else
+                        {
+                            txtFolderPath.Text = CloudFileInfoByID.path.Substring(0, CloudFileInfoByID.path.LastIndexOf("/"));
+                        }
+                        TestStatusMsg("Getting: " + CloudFileInfoByID.path);
+                        Task refresh = RefreshCurrentFolder();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMsg(string.Format("FAILED: {0}", ex.Message));
+                }
+                finally
+                {
+                    Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = diagTraceWas;
+                    cmdGetFN.Enabled = true;
+                }
+
+            }
+          
         }
 
        
