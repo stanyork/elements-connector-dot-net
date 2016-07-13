@@ -10,6 +10,7 @@ namespace Cloud_Elements_API
     {
         private string element;
         private string user;
+        private string endpointValue;
         public CloudAuthorization(string elementToken, string userToken)
         {
             element = elementToken;
@@ -22,6 +23,7 @@ namespace Cloud_Elements_API
             Dictionary<string, object> deserializedAuthorization = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonData);
             if (deserializedAuthorization.ContainsKey("element")) element = (string)deserializedAuthorization["element"];
             if (deserializedAuthorization.ContainsKey("user")) user = (string)deserializedAuthorization["user"];
+            if (deserializedAuthorization.ContainsKey("endpointValue")) endpointValue = (string)deserializedAuthorization["endpointValue"];
 
         }
 
@@ -35,10 +37,12 @@ namespace Cloud_Elements_API
             Dictionary<string, object> info = new Dictionary<string, object>();
             info.Add("element", this.element);
             info.Add("user", this.user);
+            if (endpointValue != null)  info.Add("endpointValue", this.endpointValue);
             info.Add("_extra", extra);
             return Tools.ToJson(info);
         }
 
+        public string ExtraValue { get { return endpointValue; } set { endpointValue = value; } }
 
 
         public System.Net.Http.Headers.AuthenticationHeaderValue GetHeaderValue()

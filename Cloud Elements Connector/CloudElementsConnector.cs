@@ -209,6 +209,15 @@ namespace Cloud_Elements_API
                             options.ModifiedByRawIDPath = "lastModifyingUser.emailAddress";
                             options.MaxRqPerSecond = 32;
                             break;
+                        case "sharepoint":
+                            options.MaxRqPerSecond = 32;
+                            options.SupportsCopy = false;
+                            options.SupportsGetStorage = false;
+                            break;
+                        case "dropboxbusiness":
+                            options.MaxRqPerSecond = 32;
+                            options.SetExtraHeaderID("Elements-As-Team-Member"); 
+                            break;
                         default:
                             options.MaxRqPerSecond = 32;
                             break;
@@ -277,6 +286,14 @@ namespace Cloud_Elements_API
         public async Task<CloudStorage> GetStorageAvailable()
         {
             CloudStorage Result;
+            if (!EndpointOptions.SupportsGetStorage)
+            {
+                Result = new CloudStorage();
+                Result.shared = -1;
+                Result.total  = -1;
+                Result.used = -1;
+                return Result;
+            }
             HttpClient UseClient = CloneAPIClient();
             HttpResponseMessage response = await APIExecuteGet(UseClient,"hubs/documents/storage");
             Result = await response.Content.ReadAsAsync<CloudStorage>();
@@ -394,14 +411,15 @@ namespace Cloud_Elements_API
             HttpClient UseClient = CloneAPIClient();
             string RequestURL;
             if (pageSize < 10) pageSize = 10;
+            //if (pageSize > Int16.MaxValue) pageSize = Int16.MaxValue;
             if (pageNum < 1) pageNum = 1;
             switch (fileSpecType)
             {
                 case FileSpecificationType.ID:
-                    RequestURL = "hubs/documents/folders/{0}/contents?&fetchTags={1}&pagesize={2}&page={3}";
+                    RequestURL = "hubs/documents/folders/{0}/contents?&fetchTags={1}&pageSize={2}&page={3}";
                     break;
                 case FileSpecificationType.Path:
-                    RequestURL = "hubs/documents/folders/contents?path={0}&fetchTags={1}&pagesize={2}&page={3}";
+                    RequestURL = "hubs/documents/folders/contents?path={0}&fetchTags={1}&pageSize={2}&page={3}";
                     break;
                 default:
                     throw new ArgumentException("Unsupported Folder Specification Type - " + fileSpecType.ToString());
@@ -1151,7 +1169,10 @@ namespace Cloud_Elements_API
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.AcceptEncoding.Add(StringWithQualityHeaderValue.Parse("gzip"));
             client.DefaultRequestHeaders.AcceptEncoding.Add(StringWithQualityHeaderValue.Parse("deflate"));
-
+            if ((EndpointOptions != null) && (EndpointOptions.HasExtraHeader))
+            {
+                EndpointOptions.GetExtraHeader(client);
+            }
             return (client);
         }
         #endregion
@@ -1231,7 +1252,36 @@ namespace Cloud_Elements_API
               set { _ModifiedByRawPath = value; }
         }
 
+        public void GetExtraHeader( HttpClient client)
+        {
+             if (_ExtraHeaderName == null) return;
+             client.DefaultRequestHeaders.Add(_ExtraHeaderName, _ExtraHeaderValue);
+        }
 
+        public bool HasExtraHeader
+        {
+            get
+            {
+                bool result = false;
+                if (_ExtraHeaderName != null) result = true;
+            return result;
+            }
+        }
+
+        internal void SetExtraHeaderID(string ID)
+        {
+            _ExtraHeaderName = ID;
+        }
+        public void SetExtraHeaderValue(string value)
+        {
+            if (_ExtraHeaderName == null) throw new ApplicationException("This endpoint does not use an extra header!");
+            // _ExtraHeaderNVP.Value = value;
+            //_ExtraHeaderNVP = new System.Net.Http.Headers.NameValueHeaderValue(_ExtraHeaderNVP.Name, value);  
+            _ExtraHeaderValue = value;
+        }
+
+        public bool SupportsCopy = true ;
+        public bool SupportsGetStorage = true ;
         public bool LogThrottleDelays;
         public bool LogHighwaterThroughput;
 
@@ -1242,6 +1292,11 @@ namespace Cloud_Elements_API
         private string _ModifiedByRawPath;
         private string _FileHashRawIDPath;
         private string _EndpointType;
+        //private System.Net.Http.Headers.NameValueHeaderValue _ExtraHeaderNVP;
+        private string _ExtraHeaderName;
+        private string _ExtraHeaderValue;
+        
+
 
     }
 

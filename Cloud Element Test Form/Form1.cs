@@ -147,11 +147,19 @@ namespace Cloud_Element_Test_Form
                 Task<Cloud_Elements_API.CloudStorage> StorageTask = APIConnector.GetStorageAvailable();
                 StatusMsg(PongResult.ToString());
                 UpdateSecretsFile(PongResult.ToString());
+                if (APIConnector.EndpointOptions.HasExtraHeader) APIConnector.EndpointOptions.SetExtraHeaderValue(APIAuthorization.ExtraValue);
                 toolStripTxtConnectionNow.Text = PongResult.endpoint;
-                Cloud_Elements_API.CloudStorage StorageResult = await StorageTask;
-                StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.total),
-                    Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.shared),
-                    Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.used)));
+                try
+                {
+                    Cloud_Elements_API.CloudStorage StorageResult = await StorageTask;
+                    StatusMsg(string.Format("Storage - Total {0}; Shared {1}; Used {2}", Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.total),
+                        Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.shared),
+                        Cloud_Elements_API.Tools.SizeInBytesToString(StorageResult.used)));
+                }
+                catch (Exception ex)
+                {
+                    StatusMsg("Storge check failed: " + ex.Message);
+                }
 
                 result = true;
             }
@@ -176,12 +184,15 @@ namespace Cloud_Element_Test_Form
         {
             string UserKey;
             string ElementKey;
+            string ExtraThing;
             UserKey = txtUserKey.Text;
             ElementKey = txtElementKey.Text;
+            ExtraThing = txtExtraThing.Text;
 
             if ((UserKey.Trim().Length > 0) && (ElementKey.Trim().Length > 0))
             {
                 APIAuthorization = new Cloud_Elements_API.CloudAuthorization(ElementKey, UserKey);
+                if (ExtraThing.Trim().Length > 0) APIAuthorization.ExtraValue = ExtraThing;
                 UIState(false);
                 await PingService();
                 tsBtnPing.Enabled = true;
@@ -745,6 +756,35 @@ namespace Cloud_Element_Test_Form
             }
         }
 
+        private async void getMetadataByIDToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!HasGottenFolder()) return;
+            Cloud_Elements_API.CloudFile currentRow = null;
+            Cloud_Elements_API.CloudFile CloudFileInfoByID = null;
+            if (!HasCurrentCloudFile(ref currentRow)) return;
+            Cloud_Elements_API.CloudElementsConnector.TraceLevel diagTraceWas = Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel;
+            try
+            {
+                Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = Cloud_Elements_API.CloudElementsConnector.TraceLevel.All;
+                CloudFileInfoByID = await Cloud_Elements_API.FileOperations.GetCloudFileInfo(APIConnector, Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.ID, currentRow.id);
+                if (CloudFileInfoByID == null) StatusMsg("Nothing Returned!  (not expecting not found)");
+                else
+                {
+                    StatusMsg(string.Format("OK: ID is {0}, by [{2}], hash {1}", CloudFileInfoByID.id, Cloud_Elements_API.FileOperations.ContentHash(APIConnector, CloudFileInfoByID),
+                        Cloud_Elements_API.FileOperations.LastWrittenBy(APIConnector, CloudFileInfoByID)));
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMsg(string.Format("FAILED: {0}", ex.Message));
+            }
+            finally
+            {
+                Cloud_Elements_API.CloudElementsConnector.DiagOutputLevel = diagTraceWas;
+            }
+        }
+
+
         private void tsTxtObjectName_Click(object sender, EventArgs e)
         {
             StatusMsg("Update name and press enter to rename...");
@@ -926,6 +966,9 @@ namespace Cloud_Element_Test_Form
           
         }
 
+       
+
+     
        
 
 

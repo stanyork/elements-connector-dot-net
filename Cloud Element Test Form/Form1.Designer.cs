@@ -55,12 +55,14 @@
             this.txtWorkFolder = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.txtExtraThing = new System.Windows.Forms.TextBox();
             this.cmdApply = new System.Windows.Forms.Button();
             this.txtUserKey = new System.Windows.Forms.TextBox();
             this.txtElementKey = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.tpContents = new System.Windows.Forms.TabPage();
+            this.cmdGetFN = new System.Windows.Forms.Button();
             this.cmdGetID = new System.Windows.Forms.Button();
             this.btnGetPriorFolder = new System.Windows.Forms.Button();
             this.chkWithTags = new System.Windows.Forms.CheckBox();
@@ -85,6 +87,7 @@
             this.tsGetFileLink = new System.Windows.Forms.ToolStripMenuItem();
             this.tsGetFileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getMetadataByPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.getMetadataByIDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cloudFileBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.txtFolderPath = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -106,7 +109,7 @@
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.folderBrowserUploadTree = new System.Windows.Forms.FolderBrowserDialog();
-            this.cmdGetFN = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -342,6 +345,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.txtExtraThing);
             this.groupBox1.Controls.Add(this.cmdApply);
             this.groupBox1.Controls.Add(this.txtUserKey);
             this.groupBox1.Controls.Add(this.txtElementKey);
@@ -349,10 +354,18 @@
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(18, 18);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(587, 79);
+            this.groupBox1.Size = new System.Drawing.Size(587, 109);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "API Authorization Secrets";
+            // 
+            // txtExtraThing
+            // 
+            this.txtExtraThing.Location = new System.Drawing.Point(69, 73);
+            this.txtExtraThing.Name = "txtExtraThing";
+            this.txtExtraThing.Size = new System.Drawing.Size(394, 20);
+            this.txtExtraThing.TabIndex = 5;
+            this.txtExtraThing.Text = "(from file)";
             // 
             // cmdApply
             // 
@@ -415,6 +428,20 @@
             this.tpContents.TabIndex = 0;
             this.tpContents.Text = "Contents";
             this.tpContents.UseVisualStyleBackColor = true;
+            // 
+            // cmdGetFN
+            // 
+            this.cmdGetFN.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdGetFN.Enabled = false;
+            this.cmdGetFN.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
+            this.cmdGetFN.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cmdGetFN.Location = new System.Drawing.Point(768, 6);
+            this.cmdGetFN.Name = "cmdGetFN";
+            this.cmdGetFN.Size = new System.Drawing.Size(69, 35);
+            this.cmdGetFN.TabIndex = 10;
+            this.cmdGetFN.Text = "Path";
+            this.cmdGetFN.UseVisualStyleBackColor = true;
+            this.cmdGetFN.Click += new System.EventHandler(this.cmdGetFN_click);
             // 
             // cmdGetID
             // 
@@ -556,9 +583,10 @@
             this.toolStripSeparator2,
             this.tsGetFileLink,
             this.tsGetFileMenuItem,
-            this.getMetadataByPathToolStripMenuItem});
+            this.getMetadataByPathToolStripMenuItem,
+            this.getMetadataByIDToolStripMenuItem});
             this.FolderRowContextMenu.Name = "FolderRowContextMenu";
-            this.FolderRowContextMenu.Size = new System.Drawing.Size(204, 217);
+            this.FolderRowContextMenu.Size = new System.Drawing.Size(204, 239);
             this.FolderRowContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.FolderRowContextMenu_Opening);
             // 
             // tsGetThisFolder
@@ -633,6 +661,13 @@
             this.getMetadataByPathToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
             this.getMetadataByPathToolStripMenuItem.Text = "Get Metadata by Path";
             this.getMetadataByPathToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByPathToolStripMenuItem_Click);
+            // 
+            // getMetadataByIDToolStripMenuItem
+            // 
+            this.getMetadataByIDToolStripMenuItem.Name = "getMetadataByIDToolStripMenuItem";
+            this.getMetadataByIDToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
+            this.getMetadataByIDToolStripMenuItem.Text = "Get Metadata by ID";
+            this.getMetadataByIDToolStripMenuItem.Click += new System.EventHandler(this.getMetadataByIDToolStripMenuItem_Click);
             // 
             // cloudFileBindingSource
             // 
@@ -855,19 +890,14 @@
             this.folderBrowserUploadTree.Description = "Select folder to begin tree upload";
             this.folderBrowserUploadTree.ShowNewFolderButton = false;
             // 
-            // cmdGetFN
+            // label6
             // 
-            this.cmdGetFN.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdGetFN.Enabled = false;
-            this.cmdGetFN.Image = global::Cloud_Element_Test_Form.Properties.Resources.Folder_Refresh;
-            this.cmdGetFN.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.cmdGetFN.Location = new System.Drawing.Point(768, 6);
-            this.cmdGetFN.Name = "cmdGetFN";
-            this.cmdGetFN.Size = new System.Drawing.Size(69, 35);
-            this.cmdGetFN.TabIndex = 10;
-            this.cmdGetFN.Text = "Path";
-            this.cmdGetFN.UseVisualStyleBackColor = true;
-            this.cmdGetFN.Click += new System.EventHandler(this.cmdGetFN_click);
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(17, 76);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(46, 13);
+            this.label6.TabIndex = 6;
+            this.label6.Text = "Optional";
             // 
             // Form1
             // 
@@ -984,6 +1014,9 @@
         private System.Windows.Forms.ToolStripMenuItem uploadSubtreeToolStripMenuItem;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserUploadTree;
         private System.Windows.Forms.Button cmdGetFN;
+        private System.Windows.Forms.ToolStripMenuItem getMetadataByIDToolStripMenuItem;
+        private System.Windows.Forms.TextBox txtExtraThing;
+        private System.Windows.Forms.Label label6;
     }
 }
 

@@ -14,7 +14,20 @@ namespace Cloud_Elements_API
         public UInt64 size { get; set; }            // optional
         public string name { get; set; }            // optional
         public string modifiedDate { get; set; }    // optional
-        public string id { get; set; }              // optional
+        public string id                            // optional
+        {
+            get
+            {
+                if ((this.refId != null) && (this.refId.Length > 32)) return this.refId;
+                return _id;
+            }
+            set
+            {
+                this._id = value; 
+            }
+        }
+
+        public string refId { get; set; }           // optional
         public Boolean directory { get; set; }      // optional
         public Newtonsoft.Json.Linq.JObject raw { get; set; }               // optional
 
@@ -47,6 +60,7 @@ namespace Cloud_Elements_API
         private Boolean _DatesChecked=false;
         private DateTime _WhenCreated;
         private DateTime _WhenModified;
+        private string _id;
 
         private void checkDates()
         {
