@@ -435,7 +435,7 @@ namespace Cloud_Element_Test_Form
             List<String> TagList = new List<String>();
             TagList.Add("sfCE.NET");
             System.IO.FileInfo fInfo = new System.IO.FileInfo(openFileDialog1.FileName);
-            await uploadFile( fInfo, this.CurrentFolderPath, TagList ,"Uploaded by .NET Connector Test Tool!");
+            await uploadFile(fInfo, this.CurrentFolderPath, TagList, "Uploaded by .NET Connector Test Tool!");
         }
 
         async private Task uploadFile(System.IO.FileInfo sourceFile, string targetPath, List<String> tagList, string description)
@@ -447,7 +447,7 @@ namespace Cloud_Element_Test_Form
             string SourceFileName = System.IO.Path.GetFileName(sourceFile.Name);
             if (!targetPath.EndsWith("/")) targetPath += "/";
             targetPath += SourceFileName;
-           //System.IO.FileInfo fInfo = new System.IO.FileInfo(sourceFileName);
+            //System.IO.FileInfo fInfo = new System.IO.FileInfo(sourceFileName);
 
             var sizeInBytes = sourceFile.Length;
 
@@ -457,57 +457,58 @@ namespace Cloud_Element_Test_Form
                                                         tagList.ToArray(), false, sizeInBytes);
 
             sourceFile = null;
-            double uploadSeconds = DateTime.Now.Subtract( StartedAt).TotalSeconds;
+            double uploadSeconds = DateTime.Now.Subtract(StartedAt).TotalSeconds;
             StatusMsg(string.Format("Uploaded {0} in {1:F1}s, {2:F1} mb/s ", SourceFileName, uploadSeconds, (sizeInBytes / 1024.0) / uploadSeconds));
         }
 
-       async private Task uploadFolder(string sourcePath, string targetPath)
-       {
-           List<String> TagList = new List<String>();  // unchanged in this method
-           TagList.Add("sfCETest.NET");
-           var HTMLMIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(".htm");
-           System.Text.StringBuilder FileList = new System.Text.StringBuilder();
-           foreach (var fn in System.IO.Directory.GetFiles(sourcePath))
-           {
-               System.IO.FileInfo fInfo = new System.IO.FileInfo(fn);
-               FileList.AppendFormat("<tr><td>{0}</td><td>{1:d} {1:t}</td><td>{2:d} {2:t}</td></tr>", fInfo.Name, fInfo.CreationTime, fInfo.LastWriteTime);
-               await uploadFile(fInfo, targetPath, TagList, "");
-           }
-           if (FileList.Length > 0){
+        async private Task uploadFolder(string sourcePath, string targetPath)
+        {
+            List<String> TagList = new List<String>();  // unchanged in this method
+            TagList.Add("sfCETest.NET");
+            var HTMLMIMEType = Cloud_Elements_API.Tools.FileTypeToMimeContentType(".htm");
+            System.Text.StringBuilder FileList = new System.Text.StringBuilder();
+            foreach (var fn in System.IO.Directory.GetFiles(sourcePath))
+            {
+                System.IO.FileInfo fInfo = new System.IO.FileInfo(fn);
+                FileList.AppendFormat("<tr><td>{0}</td><td>{1:d} {1:t}</td><td>{2:d} {2:t}</td></tr>", fInfo.Name, fInfo.CreationTime, fInfo.LastWriteTime);
+                await uploadFile(fInfo, targetPath, TagList, "");
+            }
+            if (FileList.Length > 0)
+            {
                 System.Text.StringBuilder FolderMarker = new System.Text.StringBuilder();
                 FolderMarker.AppendFormat("<!DOCTYPE html><html><head><title>{0}</title></head><body>\n", targetPath);
-               FolderMarker.Append( "<h2>Original Creation and Modification dates for this folder</h2><hr /><table style='width:88%;'>");
-               FolderMarker.AppendFormat("<tr style='font-weight:bold;'><td>{0}</td><td>{1}</td><td>{2}</td></tr>", "File Name", "Created", "Last Write");
-               FolderMarker.Append(FileList);
-               FolderMarker.AppendFormat("</table><span style='font-size: 0.6em'>Uploaded {0:d} at {0:t}</span>",DateTime.Now);
-               FolderMarker.AppendLine("</body></html>");
-               byte[] ByteBuffer = System.Text.Encoding.ASCII.GetBytes(FolderMarker.ToString());
-               System.IO.MemoryStream logFileStream = new System.IO.MemoryStream( ByteBuffer );
-               Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(logFileStream, HTMLMIMEType,
-                                                         targetPath + "/Uploaded File Date Information.html","",
-                                                         TagList.ToArray(), false, ByteBuffer.Length);
-           }
+                FolderMarker.Append("<h2>Original Creation and Modification dates for this folder</h2><hr /><table style='width:88%;'>");
+                FolderMarker.AppendFormat("<tr style='font-weight:bold;'><td>{0}</td><td>{1}</td><td>{2}</td></tr>", "File Name", "Created", "Last Write");
+                FolderMarker.Append(FileList);
+                FolderMarker.AppendFormat("</table><span style='font-size: 0.6em'>Uploaded {0:d} at {0:t}</span>", DateTime.Now);
+                FolderMarker.AppendLine("</body></html>");
+                byte[] ByteBuffer = System.Text.Encoding.ASCII.GetBytes(FolderMarker.ToString());
+                System.IO.MemoryStream logFileStream = new System.IO.MemoryStream(ByteBuffer);
+                Cloud_Elements_API.CloudFile Result = await APIConnector.PostFile(logFileStream, HTMLMIMEType,
+                                                          targetPath + "/Uploaded File Date Information.html", "",
+                                                          TagList.ToArray(), false, ByteBuffer.Length);
+            }
 
-           string nestedPath;
+            string nestedPath;
             foreach (var folderName in System.IO.Directory.GetDirectories(sourcePath))
-           {
-               nestedPath = string.Format("{0}/{1}",targetPath ,new System.IO.DirectoryInfo(folderName).Name);
-               await uploadFolder( folderName, nestedPath  );
-           }
-
-           
-            
-       }
+            {
+                nestedPath = string.Format("{0}/{1}", targetPath, new System.IO.DirectoryInfo(folderName).Name);
+                await uploadFolder(folderName, nestedPath);
+            }
 
 
 
-       private async void uploadSubtreeToolStripMenuItem_Click(object sender, EventArgs e)
+        }
+
+
+
+        private async void uploadSubtreeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (!HasGottenFolder()) return;
-           
+
             if (folderBrowserUploadTree.ShowDialog() == DialogResult.Cancel) return;
 
-         await   uploadFolder(folderBrowserUploadTree.SelectedPath, this.CurrentFolderPath);
+            await uploadFolder(folderBrowserUploadTree.SelectedPath, this.CurrentFolderPath);
 
         }
 
@@ -558,7 +559,7 @@ namespace Cloud_Element_Test_Form
                         }
                     }
 
-                   
+
                     // if anything was deleted by our recursive calls, we need to re-get the result list!
                     if (deletedAnything)
                     {
@@ -566,7 +567,7 @@ namespace Cloud_Element_Test_Form
                         //TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
                         if (ResultList.Count > 1) return deletedAnything;
                     }
-                    
+
                     if ((currentRow.size > 0) && (scanOptions.SingleFileOK) && (ResultList.Count == 1) && !ResultList[0].directory)
                     {
                         double fileAge = -1;
@@ -578,9 +579,10 @@ namespace Cloud_Element_Test_Form
                         {
                             // single file is ok to ignored (removed message from here)
                         }
-                        else {
-                            TestStatusMsg(string.Format("Kept {0} - folder contains {1}, {2} bytes; {3:F1} hours old", currentRow.path, ResultList[0].name,ResultList[0].size,fileAge));
-                            return deletedAnything; 
+                        else
+                        {
+                            TestStatusMsg(string.Format("Kept {0} - folder contains {1}, {2} bytes; {3:F1} hours old", currentRow.path, ResultList[0].name, ResultList[0].size, fileAge));
+                            return deletedAnything;
                         }
                     }
 
@@ -889,6 +891,20 @@ namespace Cloud_Element_Test_Form
                         }
                         TestStatusMsg("Getting: " + CloudFileInfoByID.path);
                         Task refresh = RefreshCurrentFolder();
+
+                        await refresh;
+                        //dgFolderContents.SelectedRows.Clear();
+                        foreach (DataGridViewRow gridRow in dgFolderContents.Rows)
+                        {
+                            Cloud_Elements_API.CloudFile itemrow = (Cloud_Elements_API.CloudFile)gridRow.DataBoundItem;
+                            if (itemrow.id == frmGet.FileID)
+                            {
+                                gridRow.Selected = true;
+                                dgFolderContents.CurrentCell = dgFolderContents.Rows[gridRow.Index].Cells[0];
+                                break;
+                            }
+                        }
+
                     }
                 }
                 catch (Exception ex)
@@ -923,7 +939,7 @@ namespace Cloud_Element_Test_Form
             TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
         }
 
-        private async void cmdGetFN_click(object sender, EventArgs e) 
+        private async void cmdGetFN_click(object sender, EventArgs e)
         {
             frmGetCloudFileID frmGet = new frmGetCloudFileID();
             frmGet.SetFNMode();
@@ -963,13 +979,13 @@ namespace Cloud_Element_Test_Form
                 }
 
             }
-          
+
         }
 
-       
 
-     
-       
+
+
+
 
 
 

@@ -61,6 +61,8 @@ namespace Cloud_Elements_API
             {
                 if (hx.Message.IndexOf("404") > 0)
                 {
+                    string traceInfo = string.Format("ce(GetCloudObjectInfo,{1},{2}) {0}", hx.Message, specType, request);
+                    connector.OnDiagTrace(traceInfo);
                     CloudObjectInfo = null;
                 }
                 else throw hx;

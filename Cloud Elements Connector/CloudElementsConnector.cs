@@ -154,7 +154,11 @@ namespace Cloud_Elements_API
             CloudElementsConnector result;
             lock (StaticLockObject)
             {
-                if (FactoryRefurbishedQueue.Count > 0) result = FactoryRefurbishedQueue.Dequeue();
+                if (FactoryRefurbishedQueue.Count > 0)
+                {
+                    result = FactoryRefurbishedQueue.Dequeue();
+                    result.APIClient = NewHttpClient();
+                }
                 else result = new CloudElementsConnector();
             }
 
@@ -215,8 +219,9 @@ namespace Cloud_Elements_API
                             options.SupportsGetStorage = false;
                             break;
                         case "dropboxbusiness":
-                            options.MaxRqPerSecond = 32;
-                            options.SetExtraHeaderID("Elements-As-Team-Member"); 
+                            options.MaxRqPerSecond = 48;
+                            options.SetExtraHeaderID("Elements-As-Team-Member");
+                            options.SupportsAsync = false; // http://support.cloud-elements.com/hc/requests/2835
                             break;
                         default:
                             options.MaxRqPerSecond = 32;
@@ -823,7 +828,7 @@ namespace Cloud_Elements_API
 
         #region "Request Support"
 
-        void OnDiagTrace(string info)
+        public void OnDiagTrace(string info)
         {
             if (DiagTrace != null)
             {
@@ -979,6 +984,7 @@ namespace Cloud_Elements_API
                 {
                     BaselineRequestAt = RecentRqQ.Peek(); RequestCountSinceBaseline = RecentRqQ.Count + 1;
                     double TotalSecsSinceBaseline = DateTime.Now.Subtract(BaselineRequestAt).TotalSeconds;
+                    if ((TotalSecsSinceBaseline < 0.1) && (!options.SupportsAsync)) TotalSecsSinceBaseline = 0.1;
                     double RecentReqPerSecond = (RequestCountSinceBaseline / TotalSecsSinceBaseline);
                     if ((RecentReqPerSecond > options.HighwaterGeneratedRequestsPerSecond) && (TotalSecsSinceBaseline > 0.5))
                     {
@@ -1054,97 +1060,134 @@ namespace Cloud_Elements_API
             InstanceRequestCounter++;
             HttpResponseMessage response;
             Task<HttpResponseMessage> HttpRequestTask;
-            lock (withClient) // not clear that this is required, but...
-            {
-                switch (verb)
-                {
-                    case HttpVerb.Get:
-                        HttpRequestTask = withClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
-                        break;
-                    case HttpVerb.Delete:
-                        HttpRequestTask = withClient.DeleteAsync(URI);
-                        break;
-                    case HttpVerb.Post:
-                        if (content == null) throw new ArgumentException("Post requests require content");
-
-                        HttpRequestTask = withClient.PostAsync(URI, content);
-                        break;
-                    case HttpVerb.Patch:
-                        if (content == null) throw new ArgumentException("Patch requests require content");
-                        var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
-                        HttpRequestTask = withClient.SendAsync(request);
-                        break;
-                    default:
-                        throw new ApplicationException("Unsupported verb");
-                }
-            }
-            double msUsed;
+            EndpointOptions options;
+            EndpointOptions AsyncOptionsLockTarget = null;
             try
             {
-
-                response = await HttpRequestTask;
-            }
-            catch (Exception ex)
-            {
-                msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
-                string traceInfo = string.Format("<!> ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), ex.Message, msUsed / 1000.0);
-                OnDiagTrace(traceInfo);
-                throw ex;
-            }
-            msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
-            lock (StaticLockObject) TotalRequestMS += msUsed;
-            InstanceTotalRequestMS += msUsed;
-            LastFailureInformation = "";
-            if ((!response.IsSuccessStatusCode) || (DiagOutputLevel > TraceLevel.NonSuccess))
-            {
-                string traceInfo = string.Format("ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), response.StatusCode, msUsed / 1000.0);
-                if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
+                if (EndpointSettings.ContainsKey(Endpoint))
                 {
-                    Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
-                    if (info != null)
+                    options = EndpointSettings[Endpoint];
+                    if (!options.SupportsAsync)
                     {
-                        Newtonsoft.Json.Linq.JToken msgtoken = info.GetValue("message");
-                        Newtonsoft.Json.Linq.JToken providerMsgtoken = info.GetValue("providerMessage");
-                        Newtonsoft.Json.Linq.JToken rqIDtoken = info.GetValue("requestId");
-                        if (rqIDtoken != null) traceInfo = string.Concat(traceInfo, "; RequestId=", rqIDtoken.ToString());
-                        if (msgtoken != null)
+                        AsyncOptionsLockTarget = options;
+                        bool myTurn = false;
+                        DateTime myWait = DateTime.Now;
+                        while (!myTurn)
                         {
-                            traceInfo = string.Concat(traceInfo, " - ", msgtoken.ToString());
-                            LastFailureInformation = msgtoken.ToString();
-                            if (providerMsgtoken != null)
+                            lock (AsyncOptionsLockTarget)
                             {
-                                string providerMessage = providerMsgtoken.ToString();
-                                traceInfo = string.Concat(traceInfo, " - ", providerMessage);
-                                LastFailureInformation = string.Concat(traceInfo, " - ", providerMessage);
-                                if (providerMessage.IndexOf("rate limit exceeded", StringComparison.CurrentCultureIgnoreCase) > 0)
-                                {
-                                    EndpointOptions options;
-                                    if (EndpointSettings.ContainsKey(Endpoint))                                   
-                                    {
-                                        DateTime lre = DateTime.Now;
-                                          ThrottleRequestsPerSecond(2468); 
-                                        options = EndpointSettings[Endpoint];
-                                        options.LastRateExceeded = lre;
-                                        if ((options.MaxRqPerSecond <= 0) || (options.MaxRqPerSecond > options.HighwaterGeneratedRequestsPerSecond)) options.MaxRqPerSecond = (int)options.HighwaterGeneratedRequestsPerSecond;
-                                        if ((options.MaxRqPerSecond > 2) && (DateTime.Now.Subtract(options.LastAutoLimit).TotalSeconds > 1))
-                                        {
-                                            options.MaxRqPerSecond--;
-                                            options.LastAutoLimit = options.LastRateExceeded;
-                                            OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
-                                        }
-                                        if (DateTime.Now.Subtract(lre).TotalSeconds < 2.4) throw new ApplicationException("Rate throttle failed!");
-                                        response = await APIExecuteVerb(withClient,verb, URI, content);
-                                    }
-                                }
-                            }
-                            if (rqIDtoken != null) LastFailureInformation = string.Format("{0}; (Request #{1}, ID {2})", LastFailureInformation, RequestCounter, rqIDtoken.ToString());
+                                myTurn = AsyncOptionsLockTarget.SetHttpClientBusy();
+                            }  //lock (AsyncOptionsLockTarget)
+                            if (!myTurn) System.Threading.Thread.Sleep(new TimeSpan(0, 0, 0, 0, 21));
                         }
+                        TimeSpan myTotalWait = DateTime.Now.Subtract(myWait);
+                        if ((options.LogThrottleDelays) && (myTotalWait.TotalMilliseconds > 50)) OnDiagTrace(string.Format("ce(single) [{0}] delayed {1}ms", Endpoint, myTotalWait));
                     }
                 }
-                OnDiagTrace(traceInfo);
+
+                lock (withClient) // not clear that this is required, but...
+                {
+                    switch (verb)
+                    {
+                        case HttpVerb.Get:
+                            HttpRequestTask = withClient.GetAsync(URI, HttpCompletionOption.ResponseHeadersRead);
+                            break;
+                        case HttpVerb.Delete:
+                            HttpRequestTask = withClient.DeleteAsync(URI);
+                            break;
+                        case HttpVerb.Post:
+                            if (content == null) throw new ArgumentException("Post requests require content");
+
+                            HttpRequestTask = withClient.PostAsync(URI, content);
+                            break;
+                        case HttpVerb.Patch:
+                            if (content == null) throw new ArgumentException("Patch requests require content");
+                            var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
+                            HttpRequestTask = withClient.SendAsync(request);
+                            break;
+                        default:
+                            throw new ApplicationException("Unsupported verb");
+                    }
+                }
+                double msUsed;
+                try
+                {
+
+                    response = await HttpRequestTask;
+                }
+                catch (Exception ex)
+                {
+                    msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
+                    string traceInfo = string.Format("<!> ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), ex.Message, msUsed / 1000.0);
+                    OnDiagTrace(traceInfo);
+                    throw ex;
+                }
+                msUsed = DateTime.Now.Subtract(startms).TotalMilliseconds;
+                lock (StaticLockObject) TotalRequestMS += msUsed;
+                InstanceTotalRequestMS += msUsed;
+                LastFailureInformation = "";
+                if ((!response.IsSuccessStatusCode) || (DiagOutputLevel > TraceLevel.NonSuccess))
+                {
+                    string traceInfo = string.Format("ce({0},{1}) s={3:F1}s; status={2}", verb, URIForLogging(URI), response.StatusCode, msUsed / 1000.0);
+                    if ((!response.IsSuccessStatusCode) && (response.Content.Headers.ContentLength > 0))
+                    {
+                        Newtonsoft.Json.Linq.JObject info = await response.Content.ReadAsAsync<Newtonsoft.Json.Linq.JObject>();
+                        if (info != null)
+                        {
+                            Newtonsoft.Json.Linq.JToken msgtoken = info.GetValue("message");
+                            Newtonsoft.Json.Linq.JToken providerMsgtoken = info.GetValue("providerMessage");
+                            Newtonsoft.Json.Linq.JToken rqIDtoken = info.GetValue("requestId");
+                            if (rqIDtoken != null) traceInfo = string.Concat(traceInfo, "; RequestId=", rqIDtoken.ToString());
+                            if (msgtoken != null)
+                            {
+                                traceInfo = string.Concat(traceInfo, " - ", msgtoken.ToString());
+                                LastFailureInformation = msgtoken.ToString();
+                                if (providerMsgtoken != null)
+                                {
+                                    string providerMessage = providerMsgtoken.ToString();
+                                    traceInfo = string.Concat(traceInfo, " - ", providerMessage);
+                                    LastFailureInformation = string.Concat(traceInfo, " - ", providerMessage);
+                                    if (ProviderMsgRemedyIsReIssue( providerMessage))
+                                    {
+                                        if (EndpointSettings.ContainsKey(Endpoint))
+                                        {
+                                            DateTime lre = DateTime.Now;
+                                            ThrottleRequestsPerSecond(2468);
+                                            options = EndpointSettings[Endpoint];
+                                            options.LastRateExceeded = lre;
+                                            if ((options.MaxRqPerSecond <= 0) || (options.MaxRqPerSecond > options.HighwaterGeneratedRequestsPerSecond)) options.MaxRqPerSecond = (int)options.HighwaterGeneratedRequestsPerSecond;
+                                            if ((options.MaxRqPerSecond > 2) && (DateTime.Now.Subtract(options.LastAutoLimit).TotalSeconds > 1))
+                                            {
+                                                options.MaxRqPerSecond--;
+                                                options.LastAutoLimit = options.LastRateExceeded;
+                                                OnDiagTrace(string.Format("ce(throughput) [{0}] rate limit exceeded: inferred new target of {1}r/s", Endpoint, options.MaxRqPerSecond));
+                                            }
+                                            if (DateTime.Now.Subtract(lre).TotalSeconds < 2.4) throw new ApplicationException("Rate throttle failed!");
+                                            response = await APIExecuteVerb(withClient, verb, URI, content);
+                                        }
+                                    }
+                                }
+                                if (rqIDtoken != null) LastFailureInformation = string.Format("{0}; (Request #{1}, ID {2})", LastFailureInformation, RequestCounter, rqIDtoken.ToString());
+                            }
+                        }
+                    }
+                    OnDiagTrace(traceInfo);
+                }
+                response.EnsureSuccessStatusCode();
+                return response;
             }
-            response.EnsureSuccessStatusCode();
-            return response;
+            finally
+            {
+                if (AsyncOptionsLockTarget != null) AsyncOptionsLockTarget.ClearHttpClientBusy();
+            }
+        }
+
+        private bool ProviderMsgRemedyIsReIssue(string providerMessage)
+        {
+            bool reIssue = false ;
+            reIssue = (providerMessage.IndexOf("rate limit exceeded", StringComparison.CurrentCultureIgnoreCase) > 0);
+            reIssue = reIssue || (providerMessage.IndexOf("Please re-issue the request", StringComparison.CurrentCultureIgnoreCase) > 0);
+            return reIssue;
         }
 
         string URIForLogging(string rawURI)
@@ -1280,10 +1323,35 @@ namespace Cloud_Elements_API
             _ExtraHeaderValue = value;
         }
 
-        public bool SupportsCopy = true ;
+        /// <summary>
+        /// Call when locked
+        /// </summary>
+        /// <returns>True if the semiphore was off and has been set on</returns>
+         public bool SetHttpClientBusy() {
+             bool result;
+             result = !_HttpClientBusySemiphore;
+             if (result)
+             {
+                 _HttpClientBusyThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                 _HttpClientBusySemiphore = true;
+             }
+             else if (_HttpClientBusyThreadID == System.Threading.Thread.CurrentThread.ManagedThreadId)
+             {
+                 result = true;
+             }
+             return (result);
+         }
+         public void ClearHttpClientBusy() {
+                _HttpClientBusySemiphore = false;
+         }
+
+        public bool SupportsAsync = true;
+        public bool SupportsCopy = true;
         public bool SupportsGetStorage = true ;
         public bool LogThrottleDelays;
         public bool LogHighwaterThroughput;
+        private bool _HttpClientBusySemiphore;
+        private int _HttpClientBusyThreadID;
 
         private double _HighwaterGeneratedRequestsPerSecond;
         private DateTime _LastAutoLimit;
