@@ -223,6 +223,11 @@ namespace Cloud_Elements_API
                             options.SetExtraHeaderID("Elements-As-Team-Member");
                             options.SupportsAsync = false; // http://support.cloud-elements.com/hc/requests/2835
                             break;
+                        case "dropboxbusinessv2":
+                            options.MaxRqPerSecond = 12;
+                            options.SetExtraHeaderID("Elements-As-Team-Member");
+                            options.SupportsAsync = true;  
+                            break;
                         default:
                             options.MaxRqPerSecond = 32;
                             break;
@@ -1044,6 +1049,11 @@ namespace Cloud_Elements_API
         }
 
 
+
+
+   
+
+
         /// <summary>
         /// Executes a cloud elements request.  Every request comes through here
         /// </summary>
@@ -1085,6 +1095,8 @@ namespace Cloud_Elements_API
                     }
                 }
 
+                HttpContent localCopyOfContent = null;
+                if (content != null) localCopyOfContent = await Tools.CloneHttpContentAsync(content);
                 lock (withClient) // not clear that this is required, but...
                 {
                     switch (verb)
@@ -1098,11 +1110,12 @@ namespace Cloud_Elements_API
                         case HttpVerb.Post:
                             if (content == null) throw new ArgumentException("Post requests require content");
 
-                            HttpRequestTask = withClient.PostAsync(URI, content);
+                            HttpRequestTask = withClient.PostAsync(URI, localCopyOfContent);
+                            
                             break;
                         case HttpVerb.Patch:
                             if (content == null) throw new ArgumentException("Patch requests require content");
-                            var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = content };
+                            var request = new HttpRequestMessage(new HttpMethod("PATCH"), URI) { Content = localCopyOfContent };
                             HttpRequestTask = withClient.SendAsync(request);
                             break;
                         default:
@@ -1147,7 +1160,7 @@ namespace Cloud_Elements_API
                                     string providerMessage = providerMsgtoken.ToString();
                                     traceInfo = string.Concat(traceInfo, " - ", providerMessage);
                                     LastFailureInformation = string.Concat(traceInfo, " - ", providerMessage);
-                                    if (ProviderMsgRemedyIsReIssue( providerMessage))
+                                    if ( ((int)response.StatusCode == 429 ) || (ProviderMsgRemedyIsReIssue( providerMessage)))
                                     {
                                         if (EndpointSettings.ContainsKey(Endpoint))
                                         {
@@ -1186,7 +1199,10 @@ namespace Cloud_Elements_API
         {
             bool reIssue = false ;
             reIssue = (providerMessage.IndexOf("rate limit exceeded", StringComparison.CurrentCultureIgnoreCase) > 0);
+            reIssue = reIssue || (providerMessage.IndexOf("429", StringComparison.CurrentCultureIgnoreCase) > 0);
             reIssue = reIssue || (providerMessage.IndexOf("Please re-issue the request", StringComparison.CurrentCultureIgnoreCase) > 0);
+            reIssue = reIssue || (providerMessage.IndexOf("too_many_", StringComparison.CurrentCultureIgnoreCase) > 0);
+            reIssue = reIssue || (providerMessage.IndexOf("too many", StringComparison.CurrentCultureIgnoreCase) > 0);
             return reIssue;
         }
 
@@ -1205,7 +1221,7 @@ namespace Cloud_Elements_API
 
         HttpClient NewHttpClient()
         {
-            HttpClient client = new HttpClient(new HttpClientHandler() { AutomaticDecompression = System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.GZip });
+            HttpClient client = new HttpClient(new HttpClientHandler() { AutomaticDecompression = System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.GZip },false);
             lock (StaticLockObject) ++HttpClientInstanceCounter;
             client.BaseAddress = new Uri(ElementsPublicUrl);
             client.DefaultRequestHeaders.Accept.Clear();

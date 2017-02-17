@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Cloud_Elements_API
 {
@@ -72,6 +73,58 @@ namespace Cloud_Elements_API
             return SizeInBytesToString((UInt64)sizeInBytes);
         }
 
+        private const Double OneMBInBytes = (1024.0 * 1024.0);
+
+        public static async Task<System.Net.Http.HttpContent> CloneHttpContentAsync(System.Net.Http.HttpContent req)
+        {
+            if (req == null) throw new ArgumentException("HTTPContent expected");
+            System.Net.Http.HttpContent clone ;
+
+            // Copy the request's content (via a MemoryStream) into the cloned object
+
+            System.IO.Stream ms;
+            long contentLen = 99;
+            if (req.Headers != null) contentLen = (long)req.Headers.ContentLength;
+            if (contentLen > (50d * OneMBInBytes))
+            {
+                 string tempFN = System.IO.Path.GetTempFileName();
+                 ms = GetDeleteOnCloseTempFileStream(  );
+            }
+            else ms = new System.IO.MemoryStream( );
+
+                await req.CopyToAsync(ms).ConfigureAwait(false);
+                ms.Position = 0;
+                clone = new System.Net.Http.StreamContent(ms);
+
+                // Copy the content headers
+                if (req.Headers != null)
+                    foreach (var h in req.Headers)
+                        clone.Headers.Add(h.Key, h.Value);
+
+            return clone;
+        }
+
+        public static async Task<System.Net.Http.HttpRequestMessage> CloneHttpRequestMessageAsync(System.Net.Http.HttpRequestMessage req)
+        {
+            System.Net.Http.HttpRequestMessage clone = new System.Net.Http.HttpRequestMessage(req.Method, req.RequestUri);
+
+            // Copy the request's content (via a MemoryStream) into the cloned object
+            if (req.Content != null)
+            {
+                req.Content = await CloneHttpContentAsync(req.Content);
+            }
+
+
+            clone.Version = req.Version;
+
+            foreach (KeyValuePair<string, object> prop in req.Properties)
+                clone.Properties.Add(prop);
+
+            foreach (KeyValuePair<string, IEnumerable<string>> header in req.Headers)
+                clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+            return clone;
+        }
 
 
         /// <summary>
@@ -446,7 +499,30 @@ namespace Cloud_Elements_API
             }
             return ContentType;
         }
+
+        public static FileStream GetDeleteOnCloseTempFileStream()
+        {
+            return GetDeleteOnCloseTempFileStream(16384, FileOptions.DeleteOnClose);
+        }
+
+        public static FileStream GetDeleteOnCloseTempFileStream(int bufferSize, FileOptions options)
+    {
+        string tempFN = System.IO.Path.GetTempFileName();
+         options = options | FileOptions.DeleteOnClose;
+         FileStream fs = new FileStream(tempFN, FileMode.Create, FileAccess.ReadWrite, FileShare.None, bufferSize, options);
+
+        File.SetAttributes(fs.Name, File.GetAttributes(fs.Name) | FileAttributes.Temporary);
+
+        return fs;    
+    }
          
+
+ 
+
+ 
+  
+
+
 
     }
 }
