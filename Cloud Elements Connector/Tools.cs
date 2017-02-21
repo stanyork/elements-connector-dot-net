@@ -84,7 +84,7 @@ namespace Cloud_Elements_API
 
             System.IO.Stream ms;
             long contentLen = 99;
-            if (req.Headers != null) contentLen = (long)req.Headers.ContentLength;
+            if ((req.Headers != null) && (req.Headers.ContentLength != null)) contentLen = (long)req.Headers.ContentLength;
             if (contentLen > (50d * OneMBInBytes))
             {
                  string tempFN = System.IO.Path.GetTempFileName();
