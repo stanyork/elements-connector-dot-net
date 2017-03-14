@@ -213,6 +213,13 @@ namespace Cloud_Elements_API
                             options.ModifiedByRawIDPath = "lastModifyingUser.emailAddress";
                             options.MaxRqPerSecond = 32;
                             break;
+                        case "sharefile":
+                            options.MaxRqPerSecond = 24;
+                            options.SupportsCopy = true;
+                            options.SupportsGetStorage = false;
+                            options.SupportsTags = false;
+                            break;
+
                         case "sharepoint":
                             options.MaxRqPerSecond = 32;
                             options.SupportsCopy = false;
@@ -784,15 +791,18 @@ namespace Cloud_Elements_API
             if (sizeInBytes > 0) URL += "&size=" + sizeInBytes.ToString();
             if ((tags != null) && (tags.Length > 0))
             {
-                var tagCnt = 0;
-                foreach (string tag in tags)
+                if (EndpointOptions.SupportsTags)
                 {
-                    if ((tag != null) && (tag.Trim().Length > 0))
+                    var tagCnt = 0;
+                    foreach (string tag in tags)
                     {
-                        if (tagCnt == 0) URL += "&tags%5B%5D=";
-                        else URL += ",";
-                        tagCnt++;
-                        URL += System.Net.WebUtility.UrlEncode(tag.Trim());
+                        if ((tag != null) && (tag.Trim().Length > 0))
+                        {
+                            if (tagCnt == 0) URL += "&tags%5B%5D=";
+                            else URL += ",";
+                            tagCnt++;
+                            URL += System.Net.WebUtility.UrlEncode(tag.Trim());
+                        }
                     }
                 }
             }
@@ -1364,6 +1374,7 @@ namespace Cloud_Elements_API
         public bool SupportsAsync = true;
         public bool SupportsCopy = true;
         public bool SupportsGetStorage = true ;
+        public bool SupportsTags = true;
         public bool LogThrottleDelays;
         public bool LogHighwaterThroughput;
         private bool _HttpClientBusySemiphore;

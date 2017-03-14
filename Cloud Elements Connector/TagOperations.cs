@@ -66,6 +66,11 @@ namespace Cloud_Elements_API
         public static async Task<CloudFile> SetTag(CloudElementsConnector connector, CloudFile fileData, List<string> tagValues)
         {
             bool mustStore = false;
+            if (!connector.EndpointOptions.SupportsTags)
+            {
+                if (fileData.HasTags) fileData.tags = null;
+                return fileData;
+            }
             foreach (var tagItem in tagValues)
             {
                 if (fileData.UpdateTag(tagItem)) if (!mustStore) mustStore = true;    
