@@ -51,10 +51,13 @@
             this.tstxtTagData = new System.Windows.Forms.ToolStripTextBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tpAuthorize = new System.Windows.Forms.TabPage();
+            this.label7 = new System.Windows.Forms.Label();
+            this.cmbApiEnvironment = new System.Windows.Forms.ComboBox();
             this.cmdWorkFolder = new System.Windows.Forms.Button();
             this.txtWorkFolder = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.txtExtraThing = new System.Windows.Forms.TextBox();
             this.cmdApply = new System.Windows.Forms.Button();
             this.txtUserKey = new System.Windows.Forms.TextBox();
@@ -109,7 +112,6 @@
             this.openSecretsFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveSecretsFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.folderBrowserUploadTree = new System.Windows.Forms.FolderBrowserDialog();
-            this.label6 = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -275,7 +277,7 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(68, 28);
+            this.toolStripButton1.Size = new System.Drawing.Size(67, 28);
             this.toolStripButton1.Text = " + Tag";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click_1);
             // 
@@ -304,6 +306,8 @@
             // 
             // tpAuthorize
             // 
+            this.tpAuthorize.Controls.Add(this.label7);
+            this.tpAuthorize.Controls.Add(this.cmbApiEnvironment);
             this.tpAuthorize.Controls.Add(this.cmdWorkFolder);
             this.tpAuthorize.Controls.Add(this.txtWorkFolder);
             this.tpAuthorize.Controls.Add(this.label4);
@@ -315,6 +319,24 @@
             this.tpAuthorize.TabIndex = 2;
             this.tpAuthorize.Text = "Setup";
             this.tpAuthorize.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(31, 165);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(49, 13);
+            this.label7.TabIndex = 9;
+            this.label7.Text = "API Env.";
+            // 
+            // cmbApiEnvironment
+            // 
+            this.cmbApiEnvironment.FormattingEnabled = true;
+            this.cmbApiEnvironment.Location = new System.Drawing.Point(87, 162);
+            this.cmbApiEnvironment.Name = "cmbApiEnvironment";
+            this.cmbApiEnvironment.Size = new System.Drawing.Size(394, 21);
+            this.cmbApiEnvironment.TabIndex = 8;
+            this.cmbApiEnvironment.SelectedIndexChanged += new System.EventHandler(this.cmbApiEnvironment_SelectedIndexChanged);
             // 
             // cmdWorkFolder
             // 
@@ -358,6 +380,15 @@
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "API Authorization Secrets";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(17, 76);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(46, 13);
+            this.label6.TabIndex = 6;
+            this.label6.Text = "Optional";
             // 
             // txtExtraThing
             // 
@@ -890,15 +921,6 @@
             this.folderBrowserUploadTree.Description = "Select folder to begin tree upload";
             this.folderBrowserUploadTree.ShowNewFolderButton = false;
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(17, 76);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(46, 13);
-            this.label6.TabIndex = 6;
-            this.label6.Text = "Optional";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1017,6 +1039,8 @@
         private System.Windows.Forms.ToolStripMenuItem getMetadataByIDToolStripMenuItem;
         private System.Windows.Forms.TextBox txtExtraThing;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox cmbApiEnvironment;
     }
 }
 

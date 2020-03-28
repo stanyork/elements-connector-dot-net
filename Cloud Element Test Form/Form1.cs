@@ -15,11 +15,16 @@ namespace Cloud_Element_Test_Form
         public Form1()
         {
             InitializeComponent();
+            cmbApiEnvironment.DisplayMember = "Key";
+            cmbApiEnvironment.ValueMember = "Value";
+            cmbApiEnvironment.Items.Add(new KeyValuePair<string, string>("Dev", "https://staging.cloud-elements.com/elements/api-v2/"));
+            cmbApiEnvironment.Items.Add(new KeyValuePair<string, string>("Production", "https://api.cloud-elements.com/elements/api-v2/"));
         }
 
         private EmptyFolderOptions ScanOptions = new EmptyFolderOptions();
         private Cloud_Elements_API.CloudAuthorization APIAuthorization;
         private Cloud_Elements_API.CloudElementsConnector APIConnector;
+        private string ApiURL;
 
         private Stack<String> FolderPathHistory = new Stack<String>(9);
         private String WorkPath { get { return txtWorkFolder.Text; } }
@@ -81,16 +86,32 @@ namespace Cloud_Element_Test_Form
         private string DefaultSecretsFN;
         private void Form1_Load(object sender, EventArgs e)
         {
-            txtWorkFolder.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\";
+            txtWorkFolder.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) 
+                + "\\Cloud-Elements.NET Connector Demo\\";
             if (!System.IO.Directory.Exists(txtWorkFolder.Text)) System.IO.Directory.CreateDirectory(txtWorkFolder.Text);
-            DefaultSecretsFN = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Cloud-Elements.NET Connector Demo\\Default Secrets.json";
+
+            DefaultSecretsFN = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) 
+                + "\\Cloud-Elements.NET Connector Demo\\Default Secrets.json";
+
             if (System.IO.File.Exists(DefaultSecretsFN))
             {
-                LoadSecretsFromFile(DefaultSecretsFN);
+                try
+                {
+                    LoadSecretsFromFile(DefaultSecretsFN);
+                    // We have to first convert the items in the combo box to the type that we used to load the control.
+                    // Then, find the one that has the value that we want.  
+                    cmbApiEnvironment.SelectedItem =  cmbApiEnvironment.Items.OfType<KeyValuePair<string, string>>().First(n => n.Value == APIAuthorization.ApiUrl);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                } 
             }
             else
             {
-                if (System.Windows.Forms.MessageBox.Show(string.Format("Stored Secrets not found - {0}\n\nYou will have to enter element and user secrets on the form.\n\nContinue?", DefaultSecretsFN), "Notification", System.Windows.Forms.MessageBoxButtons.YesNo) != System.Windows.Forms.DialogResult.Yes)
+                if (MessageBox.Show(string.Format("Stored Secrets not found - {0}\n\nYou will have to enter element and user secrets on the form.\n\nContinue?", DefaultSecretsFN), 
+                    "Notification", 
+                    System.Windows.Forms.MessageBoxButtons.YesNo) != System.Windows.Forms.DialogResult.Yes)
                 {
                     Application.Exit();
                     Close();
@@ -105,6 +126,11 @@ namespace Cloud_Element_Test_Form
         private async void LoadSecretsFromFile(string secretsFN)
         {
             APIAuthorization = new Cloud_Elements_API.CloudAuthorization(Cloud_Elements_API.Tools.FileToString(secretsFN));
+            if (string.IsNullOrEmpty(APIAuthorization.ApiUrl))
+            {
+                throw new Exception("Api Url is not entered.");
+            }
+            
             StatusMsg("Loaded secrets from " + secretsFN);
             this.Show();
             await PingService();
@@ -136,8 +162,8 @@ namespace Cloud_Element_Test_Form
             cmdApply.Enabled = false;
             tsBtnPing.Enabled = false;
             StatusMsg("Pinging ( connection and authorization test )....");
-            APIConnector = new Cloud_Elements_API.CloudElementsConnector();
-            APIConnector.APIAuthorization = APIAuthorization;
+            APIConnector = new Cloud_Elements_API.CloudElementsConnector(APIAuthorization);
+            //APIConnector.APIAuthorization = APIAuthorization;
             APIConnector.DiagTrace += new Cloud_Elements_API.CloudElementsConnector.DiagTraceEventHanlder(HandleDiagEvent);
             Boolean result = false;
             try
@@ -189,10 +215,11 @@ namespace Cloud_Element_Test_Form
             ElementKey = txtElementKey.Text;
             ExtraThing = txtExtraThing.Text;
 
-            if ((UserKey.Trim().Length > 0) && (ElementKey.Trim().Length > 0))
+            if ((string.IsNullOrEmpty(UserKey) == false) && (string.IsNullOrEmpty(ElementKey) == false))
             {
                 APIAuthorization = new Cloud_Elements_API.CloudAuthorization(ElementKey, UserKey);
-                if (ExtraThing.Trim().Length > 0) APIAuthorization.ExtraValue = ExtraThing;
+                if (string.IsNullOrEmpty(ExtraThing) == false) APIAuthorization.ExtraValue = ExtraThing;
+                if (cmbApiEnvironment.SelectedIndex >= 0) APIAuthorization.ApiUrl = ((KeyValuePair<string,string>)cmbApiEnvironment.SelectedItem).Value.ToString();
                 UIState(false);
                 await PingService();
                 tsBtnPing.Enabled = true;
@@ -786,7 +813,6 @@ namespace Cloud_Element_Test_Form
             }
         }
 
-
         private void tsTxtObjectName_Click(object sender, EventArgs e)
         {
             StatusMsg("Update name and press enter to rename...");
@@ -799,8 +825,6 @@ namespace Cloud_Element_Test_Form
                 RenameCurrentCloudFile();
             }
         }
-
-
 
         private void saveCurrentSecretsAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -982,14 +1006,10 @@ namespace Cloud_Element_Test_Form
 
         }
 
-
-
-
-
-
-
-
-
+        private void cmbApiEnvironment_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            APIAuthorization.ApiUrl = ((KeyValuePair<string, string>)cmbApiEnvironment.SelectedItem).Value;
+        }
     }
 
 
