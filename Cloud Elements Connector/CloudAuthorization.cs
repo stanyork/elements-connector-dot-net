@@ -10,6 +10,7 @@ namespace Cloud_Elements_API
     {
         private string Element;
         private string User;
+        static readonly string DefaultElementsPublicURL = "https://api.cloud-elements.com/elements/api-v2/";
         private string EndpointValue;
         public CloudAuthorization(string elementToken, string userToken)
         {
@@ -20,6 +21,7 @@ namespace Cloud_Elements_API
 
         public CloudAuthorization(string jsonData)
         {
+            ApiUrl = DefaultElementsPublicURL; // SAY: required for backward compatibility
             Dictionary<string, object> deserializedAuthorization = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonData);
             if (deserializedAuthorization.ContainsKey("element")) Element = (string)deserializedAuthorization["element"];
             if (deserializedAuthorization.ContainsKey("user")) User = (string)deserializedAuthorization["user"];
