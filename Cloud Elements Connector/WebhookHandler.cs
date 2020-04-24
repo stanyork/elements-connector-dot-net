@@ -57,6 +57,11 @@ namespace Cloud_Elements_API
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Content = "Request events array is null or empty.";
                 }
+                else if ((Request.message.instanceName != "Beeceptor2"))
+                {
+                    response.StatusCode = HttpStatusCode.Forbidden;
+                    response.Content = "not Authorized";
+                }
             }
 
             return response;
@@ -79,10 +84,10 @@ namespace Cloud_Elements_API
                         ExternalDAL.Created(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
                             Request.message.instanceName, reqEvent.newPath);
                         break;
-                    case "UPDATED":  //TODO: find out where this value comes from.  Is this what comes in from an update?
-                        ExternalDAL.Updated(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
-                            Request.message.instanceName, reqEvent.newPath);
-                        break;
+                    //case "UPDATED":  //No such thing as Updated for files and folders.  Maybe Tags?
+                    //    ExternalDAL.Updated(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
+                    //        Request.message.instanceName, reqEvent.newPath);
+                    //    break;
                     case "DELETED":
                         ExternalDAL.Deleted(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
                             Request.message.instanceName);
@@ -92,42 +97,6 @@ namespace Cloud_Elements_API
                 }
             }
         }
-
-        //protected void ProcessCreate(WebhookBaseObject request, Event requestEvent)
-        //{
-            //if (requestEvent.objectType == RequestObjectTypes.File)
-            //{
-
-            //}
-            //else if (requestEvent.objectType == RequestObjectTypes.Folder)
-            //{
-
-            //}
-        //}
-
-        //protected void ProcessUpdate(WebhookBaseObject request, Event requestEvent)
-        //{
-        //    if (requestEvent.objectType == RequestObjectTypes.File)
-        //    {
-
-        //    }
-        //    else if (requestEvent.objectType == RequestObjectTypes.Folder)
-        //    {
-
-        //    }
-
-        //}
-        //protected void ProcessDelete(WebhookBaseObject request, Event requestEvent)
-        //{
-        //    if (requestEvent.objectType == RequestObjectTypes.File)
-        //    {
-
-        //    }
-        //    else if (requestEvent.objectType == RequestObjectTypes.Folder)
-        //    {
-
-        //    }
-        //}
 
         
     }
