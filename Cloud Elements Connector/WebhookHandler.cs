@@ -17,8 +17,11 @@ namespace Cloud_Elements_API
 
         }
 
-        public RestSharp.RestResponse ValidateRequest(string requestBody)
+        public RestSharp.RestResponse ValidateRequest(string requestBody, string basicCreds)
         {
+
+            if (ExternalDAL == null)
+                throw new Exception("ExternalDAL must be set.");
 
             RestSharp.RestResponse response = new RestSharp.RestResponse();
             response.ContentEncoding = "application/json";
@@ -57,7 +60,9 @@ namespace Cloud_Elements_API
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Content = "Request events array is null or empty.";
                 }
-                else if ((Request.message.instanceName != "Beeceptor2"))
+                else if ((string.IsNullOrEmpty(basicCreds))
+                    &&(ExternalDAL.CredentialsAreValid(basicCreds))
+                    &&(ExternalDAL.InstanceNameIsValid(Request.message.instanceName)))  
                 {
                     response.StatusCode = HttpStatusCode.Forbidden;
                     response.Content = "not Authorized";
@@ -80,14 +85,13 @@ namespace Cloud_Elements_API
                 switch (reqEvent.eventType)
                 {
                     case "CREATED":
-                        //ProcessCreate(Request, reqEvent);
                         ExternalDAL.Created(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
                             Request.message.instanceName, reqEvent.newPath);
                         break;
-                    //case "UPDATED":  //No such thing as Updated for files and folders.  Maybe Tags?
-                    //    ExternalDAL.Updated(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
-                    //        Request.message.instanceName, reqEvent.newPath);
-                    //    break;
+                    case "UPDATED":  //version updates (in Box directly)
+                        ExternalDAL.Updated(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
+                            Request.message.instanceName, reqEvent.newPath);
+                        break;
                     case "DELETED":
                         ExternalDAL.Deleted(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
                             Request.message.instanceName);

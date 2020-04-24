@@ -37,7 +37,7 @@ namespace Cloud_Elements_API
     {
         public string itemId { get; set; }
         public string itemType { get; set; }
-        public object[] versions { get; set; }
+        public Version[] versions { get; set; }
         public string newItemId { get; set; }
         public string _event { get; set; }
         public string userId { get; set; }
@@ -52,5 +52,29 @@ namespace Cloud_Elements_API
         public string objectId { get; set; }
         public string objectType { get; set; }
     }
+
+
+    public class Version
+    {
+        public string sha1 { get; set; }
+        public int size { get; set; }
+        public Modified_By modified_by { get; set; }
+        public string name { get; set; }
+        public DateTime purged_at { get; set; }
+        public DateTime created_at { get; set; }
+        public string id { get; set; }
+        public DateTime modified_at { get; set; }
+        public string type { get; set; }
+        public DateTime trashed_at { get; set; }
+    }
+
+    public class Modified_By
+    {
+        public string name { get; set; }
+        public string id { get; set; }
+        public string login { get; set; }
+        public string type { get; set; }
+    }
+
 
 }
