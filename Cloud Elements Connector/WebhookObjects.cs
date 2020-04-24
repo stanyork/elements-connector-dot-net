@@ -60,12 +60,12 @@ namespace Cloud_Elements_API
         public int size { get; set; }
         public Modified_By modified_by { get; set; }
         public string name { get; set; }
-        public DateTime purged_at { get; set; }
+        public DateTime? purged_at { get; set; }
         public DateTime created_at { get; set; }
         public string id { get; set; }
         public DateTime modified_at { get; set; }
         public string type { get; set; }
-        public DateTime trashed_at { get; set; }
+        public DateTime? trashed_at { get; set; }
     }
 
     public class Modified_By
