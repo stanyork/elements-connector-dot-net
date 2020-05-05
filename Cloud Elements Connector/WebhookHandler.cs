@@ -37,8 +37,7 @@ namespace Cloud_Elements_API
             {
                 try
                 {
-                    RestSharp.Deserializers.JsonDeserializer deserializer = new RestSharp.Deserializers.JsonDeserializer();
-                    Request = SimpleJson.SimpleJson.DeserializeObject<WebhookBaseObject>(requestBody);
+                    Request = Newtonsoft.Json.JsonConvert.DeserializeObject<WebhookBaseObject>(requestBody);
                 }
                 catch (Exception ex)
                 {
