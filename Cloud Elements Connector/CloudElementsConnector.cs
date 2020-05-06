@@ -169,6 +169,7 @@ namespace Cloud_Elements_API
                 if (FactoryRefurbishedQueue.Count > 0)
                 {
                     result = FactoryRefurbishedQueue.Dequeue();
+                    result.APIAuthorization = AuthorizationData;
                     result.APIClient = NewHttpClient();
                 }
                 else result = new CloudElementsConnector(AuthorizationData);
