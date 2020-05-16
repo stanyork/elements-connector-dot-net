@@ -12,6 +12,7 @@ namespace Cloud_Elements_API
     {
         protected IWebhookActions ExternalDAL;
         protected WebhookBaseObject Request;
+        protected String RequestBody;
         public WebhookHandler()
         {
 
@@ -37,6 +38,7 @@ namespace Cloud_Elements_API
             {
                 try
                 {
+                    RequestBody = requestBody;
                     Request = Newtonsoft.Json.JsonConvert.DeserializeObject<WebhookBaseObject>(requestBody);
                 }
                 catch (Exception ex)
@@ -96,7 +98,23 @@ namespace Cloud_Elements_API
                             Request.message.instanceName);
                         // put the file back if they delete a file.
                         break;
-                    default: break;
+                    case "UNKNOWN":
+                        // wah           
+                        string InferredEventType;
+                        if (RequestBody.IndexOf("FILE.TRASHED", StringComparison.CurrentCultureIgnoreCase) > 0)
+                        {
+                            InferredEventType = "TRASHED";
+                        }
+                        else
+                        { // FILE.UPLOADED etc
+                            InferredEventType = "UPLOADED";
+                        }
+                        System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType, Inferred: [{0}]", InferredEventType));
+
+                        break;
+                    default:
+                        System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - unsupported eventType: [{0}]", reqEvent.eventType));
+                        break;
                 }
             }
         }
