@@ -28,6 +28,21 @@ namespace Cloud_Elements_API
             response.ContentEncoding = "application/json";
             response.StatusCode = HttpStatusCode.Accepted;
             response.Content = "Success";
+            String user = "";
+            String password = "";  
+
+            if (!string.IsNullOrWhiteSpace(basicCreds))
+            {
+                // *****Decode the authorisation String*****
+                byte[] e = System.Convert.FromBase64String(basicCreds.Substring(6));
+                String usernpass = new System.Text.ASCIIEncoding().GetString(e);
+
+                // *****Split the username from the password*****
+                  user = usernpass.Substring(0, usernpass.IndexOf(":"));
+                  password = usernpass.Substring(usernpass.IndexOf(":") + 1);
+                // check username and password
+            }
+
 
             if (string.IsNullOrEmpty(requestBody))
             {
@@ -61,12 +76,15 @@ namespace Cloud_Elements_API
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Content = "Request events array is null or empty.";
                 }
-                else if ((string.IsNullOrEmpty(basicCreds))
-                    &&(ExternalDAL.CredentialsAreValid(basicCreds))
-                    &&(ExternalDAL.InstanceNameIsValid(Request.message.instanceName)))  
+                else if (!(string.IsNullOrEmpty(basicCreds)) && (!ExternalDAL.CredentialsAreValid(basicCreds, user, password)))
                 {
                     response.StatusCode = HttpStatusCode.Forbidden;
                     response.Content = "not Authorized";
+                }
+                else if (!ExternalDAL.InstanceNameIsValid(Request.message.instanceName))
+                {
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Content = "Unrecognized Instance Name";
                 }
             }
 
@@ -81,8 +99,50 @@ namespace Cloud_Elements_API
 
         public void ProcessRequest()
         {
+            bool logEventBody = false;
             foreach (Event reqEvent in Request.message.events)
             {
+                if (reqEvent.eventType == "UNKNOWN")
+                {
+                    string InferredEventType = reqEvent.eventType;
+                    System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType, Inferred: [{0}]", InferredEventType));
+                    logEventBody = true;
+                    if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase) ) {
+                        if (Request.message.raw.source.path_collection.total_count > 1)
+                        {
+                            reqEvent.newPath = "";
+                            foreach (var item in Request.message.raw.source.path_collection.entries)
+                            {
+                                if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
+                            }
+                        }
+                        switch (Request.message.raw.trigger)
+                        {
+                            case "FILE.UPLOADED":
+                                reqEvent.eventType = "UPDATED";
+                                break;
+                            case "FILE.DELETED":
+                            case "FILE.TRASHED":
+                                reqEvent.eventType = "DELETED";
+                                break;
+                            case "METADATA_INSTANCE.CREATED":
+                                reqEvent.eventType = "CREATED";
+                                break;
+                            default:
+                                System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - unsupported raw box trigger: [{0}]", Request.message.raw.trigger));
+                                reqEvent.eventType = "UPDATED";
+                                logEventBody = true;
+                                break;
+                        }
+
+                    }
+                    else {
+                        System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType not handled for [{0}]", Request.message.elementKey));
+                    }
+                }
+
+
+
                 switch (reqEvent.eventType)
                 {
                     case "CREATED":
@@ -98,27 +158,18 @@ namespace Cloud_Elements_API
                             Request.message.instanceName);
                         // put the file back if they delete a file.
                         break;
-                    case "UNKNOWN":
-                        // wah           
-                        string InferredEventType;
-                        if (RequestBody.IndexOf("FILE.TRASHED", StringComparison.CurrentCultureIgnoreCase) > 0)
-                        {
-                            InferredEventType = "TRASHED";
-                        }
-                        else
-                        { // FILE.UPLOADED etc
-                            InferredEventType = "UPLOADED";
-                        }
-                        System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType, Inferred: [{0}]", InferredEventType));
-
-                        break;
+                     
                     default:
                         System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - unsupported eventType: [{0}]", reqEvent.eventType));
+                        logEventBody = true;
                         break;
                 }
             }
+            if(logEventBody)
+                System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() {0}", RequestBody));
+
         }
 
-        
+
     }
 }

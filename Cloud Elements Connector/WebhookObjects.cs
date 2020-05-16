@@ -41,6 +41,29 @@ namespace Cloud_Elements_API
         public string newItemId { get; set; }
         public string _event { get; set; }
         public string userId { get; set; }
+        public Source source { get; set; }
+        public string trigger { get; set; }
+    }
+
+    public class Source
+    {
+        public PathCollection path_collection { get; set; }
+        public string name { get; set; }
+    }
+
+    public class PathCollection
+    {
+        public PathEntry[] entries { get; set; }
+        public int total_count { get; set; }
+
+    }
+
+
+    public class PathEntry
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+
     }
 
     public class Event

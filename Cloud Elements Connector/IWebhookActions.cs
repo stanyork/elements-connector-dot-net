@@ -11,7 +11,7 @@ namespace Cloud_Elements_API
         void Created(string objectID, string objectType, string eventType, string instanceName, string newPath);
         void Updated(string objectID, string objectType, string eventType, string instanceName, string newPath);
         void Deleted(string objectID, string objectType, string eventType, string instanceName);
-        bool CredentialsAreValid(string credsString);
+        bool CredentialsAreValid(string credsString, string userID, string password);
         bool InstanceNameIsValid(string instanceName);
     }
 }
