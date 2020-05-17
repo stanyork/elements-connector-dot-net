@@ -76,7 +76,7 @@ namespace Cloud_Elements_API
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Content = "Request events array is null or empty.";
                 }
-                else if (!(string.IsNullOrEmpty(basicCreds)) && (!ExternalDAL.CredentialsAreValid(basicCreds, user, password)))
+                else if ( !ExternalDAL.CredentialsAreValid(basicCreds, user, password))
                 {
                     response.StatusCode = HttpStatusCode.Forbidden;
                     response.Content = "not Authorized";
@@ -108,7 +108,7 @@ namespace Cloud_Elements_API
                     System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType, Inferred: [{0}]", InferredEventType));
                     logEventBody = true;
                     if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase) ) {
-                        if (Request.message.raw.source.path_collection.total_count > 1)
+                        if (Request.message.raw.source.path_collection != null && (Request.message.raw.source.path_collection.total_count > 1))
                         {
                             reqEvent.newPath = "";
                             foreach (var item in Request.message.raw.source.path_collection.entries)
