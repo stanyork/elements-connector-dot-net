@@ -96,7 +96,6 @@ namespace Cloud_Elements_API
             ExternalDAL = actionsDAL;
         }
 
-
         public void ProcessRequest()
         {
             bool logEventBody = false;
@@ -105,7 +104,6 @@ namespace Cloud_Elements_API
                 if (reqEvent.eventType == "UNKNOWN")
                 {
                     string InferredEventType = reqEvent.eventType;
-                    System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType, Inferred: [{0}]", InferredEventType));
                     logEventBody = true;
                     if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase) ) {
                         if (Request.message.raw.source.path_collection != null && (Request.message.raw.source.path_collection.total_count > 1))
@@ -116,6 +114,7 @@ namespace Cloud_Elements_API
                                 if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
                             }
                         }
+                        InferredEventType = Request.message.raw.trigger;
                         switch (Request.message.raw.trigger)
                         {
                             case "FILE.UPLOADED":
@@ -136,9 +135,12 @@ namespace Cloud_Elements_API
                         }
 
                     }
+
                     else {
-                        System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN eventType not handled for [{0}]", Request.message.elementKey));
+                        InferredEventType = "*not supported*";
                     }
+                    System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - UNKNOWN {1} eventType, Inferred: [{0}]", InferredEventType, Request.message.elementKey));
+
                 }
 
 
