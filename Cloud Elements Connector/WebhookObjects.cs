@@ -43,12 +43,32 @@ namespace Cloud_Elements_API
         public string userId { get; set; }
         public Source source { get; set; }
         public string trigger { get; set; }
+        public CitrixShareFileRawEvent Event { get; set; }
     }
+
+    public class CitrixShareFileResource
+    {
+        public Parent Parent { get; set; }
+    }
+    public class CitrixShareFileRawEvent
+    {
+       
+        public string OperationName { get; set; }
+        public CitrixShareFileResource Resource { get; set; }
+    }
+
 
     public class Source
     {
         public PathCollection path_collection { get; set; }
         public string name { get; set; }
+        public Parent parent { get; set; }
+    }
+
+    public class Parent
+    {
+        public string id { get; set; }  // BOX
+        public string Id { get; set; }  // Citrix ShareFile
     }
 
     public class PathCollection
@@ -74,6 +94,8 @@ namespace Cloud_Elements_API
         public string hubKey { get; set; }
         public string objectId { get; set; }
         public string objectType { get; set; }
+        public string parentObjectId { get; set; }
+
     }
 
 

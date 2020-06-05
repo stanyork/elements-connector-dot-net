@@ -78,12 +78,12 @@ namespace Cloud_Elements_API
                 }
                 else if ( !ExternalDAL.CredentialsAreValid(basicCreds, user, password))
                 {
-                    response.StatusCode = HttpStatusCode.Forbidden;
+                    response.StatusCode = HttpStatusCode.NonAuthoritativeInformation;
                     response.Content = "not Authorized";
                 }
                 else if (!ExternalDAL.InstanceNameIsValid(Request.message.instanceName))
                 {
-                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.StatusCode = HttpStatusCode.NonAuthoritativeInformation;
                     response.Content = "Unrecognized Instance Name";
                 }
             }
@@ -106,14 +106,7 @@ namespace Cloud_Elements_API
                     string InferredEventType = reqEvent.eventType;
                     logEventBody = true;
                     if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase) ) {
-                        if (Request.message.raw.source.path_collection != null && (Request.message.raw.source.path_collection.total_count > 1))
-                        {
-                            reqEvent.newPath = "";
-                            foreach (var item in Request.message.raw.source.path_collection.entries)
-                            {
-                                if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
-                            }
-                        }
+                        
                         InferredEventType = Request.message.raw.trigger;
                         switch (Request.message.raw.trigger)
                         {
@@ -143,24 +136,60 @@ namespace Cloud_Elements_API
 
                 }
 
+                if (string.IsNullOrWhiteSpace(reqEvent.newPath))
+                {
+                    if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (Request.message.raw.source.path_collection != null && (Request.message.raw.source.path_collection.total_count > 1))
+                        {
+                            reqEvent.newPath = "";
+                            foreach (var item in Request.message.raw.source.path_collection.entries)
+                            {
+                                if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
+                            }
+                        }
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(reqEvent.parentObjectId))
+                {
+                    if (Request.message.elementKey.StartsWith("box", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (Request.message.raw.source.parent != null && (!string.IsNullOrWhiteSpace(Request.message.raw.source.parent.id )))
+                        {
+                            reqEvent.parentObjectId = Request.message.raw.source.parent.id;
+                        }
+                    }
+                    else if (Request.message.elementKey.StartsWith("sharefile", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (Request.message.raw.Event != null &&
+                            Request.message.raw.Event.Resource != null &&
+                            Request.message.raw.Event.Resource.Parent != null &&
+                             (!string.IsNullOrWhiteSpace(Request.message.raw.Event.Resource.Parent.Id))
+                            )
+                        {
+                            reqEvent.parentObjectId = Request.message.raw.Event.Resource.Parent.Id;
+                        }
+                    }
+                }
 
-
-                switch (reqEvent.eventType)
+                switch (reqEvent.eventType) 
                 {
                     case "CREATED":
                         ExternalDAL.Created(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
-                            Request.message.instanceName, reqEvent.newPath);
+                            Request.message.instanceName, reqEvent.parentObjectId, reqEvent.newPath);
                         break;
-                    case "UPDATED":  //version updates (in Box directly)
+                    case "UPDATED":  //version updates (often arrive as CREATED anyhow)
                         ExternalDAL.Updated(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
-                            Request.message.instanceName, reqEvent.newPath);
+                            Request.message.instanceName, reqEvent.parentObjectId, reqEvent.newPath);
                         break;
                     case "DELETED":
                         ExternalDAL.Deleted(reqEvent.objectId, reqEvent.objectType, reqEvent.eventType,
-                            Request.message.instanceName);
+                            Request.message.instanceName, reqEvent.parentObjectId);
                         // put the file back if they delete a file.
                         break;
-                     
+                    case "RETRIEVED":
+                        System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest([{0}]) - FYI", reqEvent.eventType));
+                        break;
                     default:
                         System.Diagnostics.Trace.Write(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() - unsupported eventType: [{0}]", reqEvent.eventType));
                         logEventBody = true;

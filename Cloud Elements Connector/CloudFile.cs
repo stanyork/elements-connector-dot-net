@@ -27,6 +27,7 @@ namespace Cloud_Elements_API
             }
         }
 
+        public string parentFolderId { get; set; }
         public string refId { get; set; }           // optional
         public Boolean directory { get; set; }      // optional
         public Newtonsoft.Json.Linq.JObject raw { get; set; }               // optional
