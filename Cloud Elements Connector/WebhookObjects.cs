@@ -14,11 +14,19 @@ namespace Cloud_Elements_API
         public string topic { get; set; }
         public string action { get; set; }
         public string id { get; set; }
-        public Message message { get; set; }
         public string user { get; set; }
     }
 
-    public class Message
+    public class BoxWebhookObject : WebhookBaseObject
+    {
+        public   BoxMessage message { get; set; }
+    }
+    public class ShareFileWebhookObject : WebhookBaseObject
+    {
+        public   ShareFileMessage message { get; set; }
+    }
+
+    public class MessageBase
     {
         public string elementKey { get; set; }
         public int accountId { get; set; }
@@ -28,23 +36,48 @@ namespace Cloud_Elements_API
         public int instance_id { get; set; }
         public string instanceName { get; set; }
         public string[] instanceTags { get; set; }
-        public Raw raw { get; set; }
+        
         public int userId { get; set; }
         public Event[] events { get; set; }
     }
 
-    public class Raw
+    public class BoxMessage : MessageBase
+    {
+       
+        public   BoxRaw raw { get; set; }
+       
+    }
+
+    public class ShareFileMessage : MessageBase
+    {
+        public   ShareFileRaw raw { get; set; }
+    }
+
+
+    public class RawBase
     {
         public string itemId { get; set; }
         public string itemType { get; set; }
         public Version[] versions { get; set; }
         public string newItemId { get; set; }
-        public string _event { get; set; }
+        
         public string userId { get; set; }
         public Source source { get; set; }
         public string trigger { get; set; }
+      
+    }
+
+    public class BoxRaw : RawBase
+    {
+        public string item_parent_folder_id { get; set; }
+        public string _event { get; set; }
+    }
+
+    public class ShareFileRaw : RawBase
+    {
         public CitrixShareFileRawEvent Event { get; set; }
     }
+
 
     public class CitrixShareFileResource
     {
