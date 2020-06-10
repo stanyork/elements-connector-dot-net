@@ -14,6 +14,7 @@ namespace Cloud_Elements_API
         protected BoxWebhookObject BoxRequest;
         protected ShareFileWebhookObject ShareFileRequest;
         protected string InstanceName;
+        protected static System.Collections.Generic.Dictionary<string, int> FYISeen = new System.Collections.Generic.Dictionary<string, int>();
         protected String RequestBody;
         public WebhookHandler()
         {
@@ -70,7 +71,7 @@ namespace Cloud_Elements_API
                 {
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Content = "Request was in wrong format. -> " + ex.Message;
-                    System.Diagnostics.Trace.WriteLine(string.Format("<?> CloudElementsConnector:WebhookHandler.ValidateRequest() - [{0}]", response.Content));
+                    Cloud_Elements_API.Tools.TraceWrite(string.Format("<?> CloudElementsConnector:WebhookHandler.ValidateRequest() - [{0}]", response.Content));
                 }
                 if (BoxRequest == null && ShareFileRequest == null)
                 {
@@ -122,7 +123,7 @@ namespace Cloud_Elements_API
 
             if (response.StatusCode != HttpStatusCode.Accepted)
             {
-                System.Diagnostics.Trace.WriteLine(string.Format("<?> CloudElementsConnector:WebhookHandler.ValidateRequest() - [{0}]", response.Content));
+                Cloud_Elements_API.Tools.TraceWrite(string.Format("<?> CloudElementsConnector:WebhookHandler.ValidateRequest() - [{0}]", response.Content));
 
             }
 
@@ -157,64 +158,82 @@ namespace Cloud_Elements_API
         private bool ProcessBoxRequest()
         {
             bool logEventBody = false;
-            foreach (Event reqEvent in BoxRequest.message.events)
+            try
             {
-                if (reqEvent.eventType == "UNKNOWN")
+                foreach (Event reqEvent in BoxRequest.message.events)
                 {
-                    string InferredEventType = reqEvent.eventType;
-                    logEventBody = true;
-                    InferredEventType = BoxRequest.message.raw.trigger;
-                    switch (BoxRequest.message.raw.trigger)
+                    if (reqEvent.eventType == "UNKNOWN")
                     {
-                        case "FILE.UPLOADED":
-                            reqEvent.eventType = "UPDATED";
-                            break;
-                        case "FILE.DELETED":
-                        case "FILE.TRASHED":
-                            reqEvent.eventType = "DELETED";
-                            break;
-                        case "METADATA_INSTANCE.CREATED":
-                            reqEvent.eventType = "CREATED";
-                            break;
-                        default:
-                            System.Diagnostics.Trace.WriteLine(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - unsupported raw box trigger: [{0}]", BoxRequest.message.raw.trigger));
-                            reqEvent.eventType = "UPDATED";
-                            logEventBody = true;
-                            break;
-                    }
-                    System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - UNKNOWN {1} eventType, Inferred: [{0}]", InferredEventType, BoxRequest.message.elementKey));
-                }
-
-                if (BoxRequest.message.raw != null)
-                {
-                    if (string.IsNullOrWhiteSpace(reqEvent.newPath))
-                    {
-                        if (BoxRequest.message.raw.source != null && BoxRequest.message.raw.source.path_collection != null && (BoxRequest.message.raw.source.path_collection.total_count > 1))
+                        string InferredEventType = reqEvent.eventType;
+                        string RawEventType = BoxRequest.message.raw.trigger;
+                        string RawEventSource = "trigger";
+                        if (string.IsNullOrWhiteSpace(RawEventType))
                         {
-                            reqEvent.newPath = "";
-                            foreach (var item in BoxRequest.message.raw.source.path_collection.entries)
+                            RawEventType = BoxRequest.message.raw.event_type;
+                            RawEventSource = "event_type";
+                        }
+                        logEventBody = true;
+                        switch (RawEventType)
+                        {
+                            case "FILE.UPLOADED":
+                                reqEvent.eventType = "UPDATED";
+                                break;
+                            case "FILE.DELETED":
+                            case "FILE.TRASHED":
+                                reqEvent.eventType = "DELETED";
+                                break;
+                            case "METADATA_INSTANCE.CREATED":
+                                reqEvent.eventType = "CREATED";
+                                break;
+                            case "commented":
+                                reqEvent.eventType = "COMMENTED";
+                                break;
+                            default:
+                                Cloud_Elements_API.Tools.TraceWrite(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - unsupported raw box trigger: [{0}.{1}]", RawEventSource, RawEventType));
+                                reqEvent.eventType = "UPDATED";
+                                logEventBody = true;
+                                break;
+                        }
+                        Cloud_Elements_API.Tools.TraceWrite(string.Format("CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - UNKNOWN {1} {2} {3} eventType, Inferred: [{0}]", InferredEventType, BoxRequest.message.elementKey,RawEventSource, RawEventType));
+                    }
+
+                    if (BoxRequest.message.raw != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(reqEvent.newPath))
+                        {
+                            if (BoxRequest.message.raw.source != null && BoxRequest.message.raw.source.path_collection != null && (BoxRequest.message.raw.source.path_collection.total_count > 1))
                             {
-                                if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
+                                reqEvent.newPath = "";
+                                foreach (var item in BoxRequest.message.raw.source.path_collection.entries)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(item.id) && item.id != "0") reqEvent.newPath += "/" + item.name;
+                                }
+                            }
+                        }
+                        if (string.IsNullOrWhiteSpace(reqEvent.parentObjectId))
+                        {
+                            if (BoxRequest.message.raw.source != null && BoxRequest.message.raw.source.parent != null && (!string.IsNullOrWhiteSpace(BoxRequest.message.raw.source.parent.id)))
+                            {
+                                reqEvent.parentObjectId = BoxRequest.message.raw.source.parent.id;
+                            }
+                            else if (BoxRequest.message.raw.item_parent_folder_id != null && (!string.IsNullOrWhiteSpace(BoxRequest.message.raw.item_parent_folder_id)))
+                            {
+                                reqEvent.parentObjectId = BoxRequest.message.raw.item_parent_folder_id;
                             }
                         }
                     }
-                    if (string.IsNullOrWhiteSpace(reqEvent.parentObjectId))
+                    else
                     {
-                        if (BoxRequest.message.raw.source != null &&  BoxRequest.message.raw.source.parent != null && (!string.IsNullOrWhiteSpace(BoxRequest.message.raw.source.parent.id)))
-                        {
-                            reqEvent.parentObjectId = BoxRequest.message.raw.source.parent.id;
-                        }
-                        else if (BoxRequest.message.raw.item_parent_folder_id != null && (!string.IsNullOrWhiteSpace(BoxRequest.message.raw.item_parent_folder_id)))
-                        {
-                            reqEvent.parentObjectId = BoxRequest.message.raw.item_parent_folder_id;
-                        }
+                        Cloud_Elements_API.Tools.TraceWrite(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - {0} missing RAW", "", BoxRequest.message.elementKey));
+                        logEventBody = true;
                     }
+                    logEventBody = logEventBody | ProcessEvent(reqEvent);
                 }
-                else {
-                    System.Diagnostics.Trace.WriteLine(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - {0} missing RAW", "", BoxRequest.message.elementKey));
-                    logEventBody = true;
-                }
-                logEventBody = logEventBody | ProcessEvent(reqEvent);
+            } 
+            catch (Exception ex)
+            {
+                Cloud_Elements_API.Tools.TraceWrite(string.Format("<!> CloudElementsConnector:WebhookHandler.ProcessBoxRequest() - Failed: {0}", ex.ToString()));
+                logEventBody = true;
             }
             return logEventBody;
         }
@@ -238,10 +257,20 @@ namespace Cloud_Elements_API
                     // put the file back if they delete a file.
                     break;
                 case "RETRIEVED":
-                    System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessEvent([{0}]) - FYI", reqEvent.eventType));
+                case "COMMENTED":
+                    int SeenCount = 0;
+                    lock (FYISeen)
+                    {
+                        if (!FYISeen.ContainsKey(reqEvent.eventType)) FYISeen.Add(reqEvent.eventType, SeenCount);
+                        SeenCount = FYISeen[reqEvent.eventType];
+                        SeenCount += 1;
+                        FYISeen[reqEvent.eventType] = SeenCount;
+                    }
+                    if ((SeenCount % 10) == 1)
+                        Cloud_Elements_API.Tools.TraceWrite(string.Format("CloudElementsConnector:WebhookHandler.ProcessEvent([{0}]) - FYI, Count={1}", reqEvent.eventType,SeenCount));
                     break;
                 default:
-                    System.Diagnostics.Trace.WriteLine(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessEvent() - unsupported eventType: [{0}]", reqEvent.eventType));
+                    Cloud_Elements_API.Tools.TraceWrite(string.Format("<?> CloudElementsConnector:WebhookHandler.ProcessEvent() - unsupported eventType: [{0}]", reqEvent.eventType));
                     logEventBody = true;
                     break;
             }
@@ -257,7 +286,7 @@ namespace Cloud_Elements_API
 
  
             if (logEventBody)
-                System.Diagnostics.Trace.WriteLine(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() {0}", RequestBody));
+                Cloud_Elements_API.Tools.TraceWrite(string.Format("CloudElementsConnector:WebhookHandler.ProcessRequest() {0}", RequestBody));
 
         }
 

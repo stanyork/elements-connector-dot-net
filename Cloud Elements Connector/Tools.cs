@@ -304,6 +304,12 @@ namespace Cloud_Elements_API
             return DateTime.Now.ToString(TraceTimeFormat);
         }
 
+        public static void TraceWrite(string msg)
+        {
+            System.Diagnostics.Trace.WriteLine(string.Format("{0}: {1}", DateTime.Now.ToString(TraceTimeFormat), msg));
+
+        }
+
 
         /// <summary>
         /// Returns a digest (hash) of the stream.  

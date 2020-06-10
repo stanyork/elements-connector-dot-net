@@ -70,6 +70,7 @@ namespace Cloud_Elements_API
     public class BoxRaw : RawBase
     {
         public string item_parent_folder_id { get; set; }
+        public string event_type { get; set; }
         public string _event { get; set; }
     }
 
