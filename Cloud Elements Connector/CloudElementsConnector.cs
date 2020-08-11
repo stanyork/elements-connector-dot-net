@@ -833,7 +833,7 @@ namespace Cloud_Elements_API
             try
             {
                 DateTime SendStartedAt = DateTime.Now;
-                UseClient.Timeout = CalculateTimeoutForBytesPerMS(sizeInBytes);
+                UseClient.Timeout = CalculateTimeoutForBytesPerMS(sizeInBytes,true);
                 HttpResponseMessage response = await APIExecutePost(UseClient, URL, content);
                 Result = await response.Content.ReadAsAsync<CloudFile>();
                 UpdateMSperKB( DateTime.Now.Subtract(SendStartedAt), sizeInBytes);
@@ -950,14 +950,15 @@ namespace Cloud_Elements_API
         private long HighWaterTimeout = 120000;
         private double SlowestKBRate = 8;
         private double FastestKBRate = 5;
-        private TimeSpan CalculateTimeoutForBytesPerMS(long sizeInBytes)
+        private TimeSpan CalculateTimeoutForBytesPerMS(long sizeInBytes, bool forUpload = false)
         {
             int msTimeout =   (int)Math.Ceiling((sizeInBytes / 1024.0) * MSperKB);
             if (msTimeout < minTimeOutMS) msTimeout += minTimeOutMS; // internal default is 100 seconds
             if (msTimeout > MaxTimeOutMS) msTimeout = MaxTimeOutMS;
+            if (forUpload) msTimeout *= 2;
             if (msTimeout > HighWaterTimeout)
             {
-                OnDiagTrace(string.Format("ce(?) New high request timeout {0:F1}s for {1:F1}MB" ,msTimeout / 1000, sizeInBytes / 1024.0 / 1024.0));
+                OnDiagTrace(string.Format("ce(?) New high request timeout {0:F1}s for {1:F1}MB" ,msTimeout / 1000D, sizeInBytes / 1024.0 / 1024.0));
                 HighWaterTimeout = msTimeout;
             }
             return new TimeSpan(0, 0, 0, 0, msTimeout); // allow 16ms per KB
