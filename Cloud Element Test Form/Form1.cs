@@ -567,6 +567,7 @@ namespace Cloud_Element_Test_Form
             //StatusMsg(string.Format("Scanning folder {0}", currentRow.name));
             Cloud_Elements_API.CloudElementsConnector ViaConnector = APIConnector.Clone();
             bool deletedAnything = false;
+            bool isNotEmpty = false;
             try
             {
                 if (currentRow.directory)
@@ -581,8 +582,12 @@ namespace Cloud_Element_Test_Form
                         {
                             if (ResultList[i].directory)
                             {
-                                deletedAnything = await scanForEmptyFolders(scanOptions, ResultList[i]);
+                                bool deletedThisBranch = false;
+                                deletedThisBranch = await scanForEmptyFolders(scanOptions, ResultList[i]);
+                                if (deletedThisBranch) deletedAnything = true;
+                                else isNotEmpty = true;
                             }
+                            else isNotEmpty = true;
                         }
                     }
 
@@ -592,7 +597,8 @@ namespace Cloud_Element_Test_Form
                     {
                         ResultList = await ViaConnector.ListFolderContents(Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, currentRow.path, chkWithTags.Checked);
                         //TestStatusMsg(string.Format("FYI: Folder {1} now contains {0} bytes", currentRow.size, currentRow.path));
-                        if (ResultList.Count > 1) return deletedAnything;
+                        if (ResultList.Count > 1 || ( ResultList.Count == 1 && ResultList[0].directory)) return deletedAnything;
+                        if (!isNotEmpty && ResultList.Count == 1) isNotEmpty = true;
                     }
 
                     if ((currentRow.size > 0) && (scanOptions.SingleFileOK) && (ResultList.Count == 1) && !ResultList[0].directory)
@@ -605,6 +611,7 @@ namespace Cloud_Element_Test_Form
                                 && (ResultList[0].path.EndsWith(scanOptions.SingleFileType, StringComparison.CurrentCultureIgnoreCase)))
                         {
                             // single file is ok to ignored (removed message from here)
+                            isNotEmpty = false;
                         }
                         else
                         {
@@ -612,6 +619,7 @@ namespace Cloud_Element_Test_Form
                             return deletedAnything;
                         }
                     }
+                    if (isNotEmpty) return deletedAnything;
 
                     if ((scanOptions.PathCheck) && (currentRow.path.IndexOf(scanOptions.PathMustContain, StringComparison.CurrentCultureIgnoreCase) < 0))
                     {
@@ -958,7 +966,36 @@ namespace Cloud_Element_Test_Form
             APIConnector.EndpointMaxRequestsPerSecond = 2;
             CountOfFoldersRemoved = 0;
             StatusMsg("Starting folder scan...");
-            await scanForEmptyFolders(ScanOptions, currentRow);
+            if (ScanOptions.CheckFolders != null)
+            {
+                Cloud_Elements_API.CloudElementsConnector ViaConnector = APIConnector.Clone();
+                int NotFound = 0;
+                foreach (var item in ScanOptions.CheckFolders)
+                {
+                    try
+                    {
+                        string thisPath = item;
+                        if (thisPath.EndsWith("/")) thisPath = thisPath.TrimEnd('/') ;
+                        currentRow = await Cloud_Elements_API.FileOperations.GetCloudObjectInfo(ViaConnector, Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType.Folder,
+                       Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, thisPath);
+                        if (currentRow != null)
+                        {
+                            await scanForEmptyFolders(ScanOptions, currentRow);
+                        }
+                        else NotFound++;
+                    }
+                    catch (Exception ee)
+                    {
+                        TestStatusMsg(string.Format("Skipped {0} - {1}", item,ee.Message));
+                        //throw;
+                    }
+                   
+                }
+                TestStatusMsg(string.Format("Scanned {0} folders; {1} removed, {2} not found (already removed?) = {3} remain", ScanOptions.CheckFolders.Count, CountOfFoldersRemoved,NotFound,
+                                ScanOptions.CheckFolders.Count-( CountOfFoldersRemoved+ NotFound)));
+                ViaConnector.Close();
+            }
+            else             await scanForEmptyFolders(ScanOptions, currentRow);
             StatusMsg("Folder scan ended, see test log for results.");
             TestStatusMsg(string.Format("Folders Removed: {0}", CountOfFoldersRemoved));
         }

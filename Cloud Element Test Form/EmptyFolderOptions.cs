@@ -16,5 +16,6 @@ namespace Cloud_Element_Test_Form
         public double  SingleFileAgeInHours = 12.0;
 
         public string PathMustContain = "/rfi/";
+        public System.Collections.Specialized.StringCollection CheckFolders;
     }
 }

@@ -33,5 +33,14 @@ namespace Cloud_Element_Test_Form
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.Close();
         }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            ScanOptions.CheckFolders = new System.Collections.Specialized.StringCollection();
+            foreach (var item in txtFolderList.Lines)
+            {
+                ScanOptions.CheckFolders.Add(item);
+            }
+        }
     }
 }
