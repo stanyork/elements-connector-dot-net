@@ -970,6 +970,9 @@ namespace Cloud_Element_Test_Form
             {
                 Cloud_Elements_API.CloudElementsConnector ViaConnector = APIConnector.Clone();
                 int NotFound = 0;
+                bool RemovedThis = false;
+                System.Collections.Specialized.StringCollection KeptPaths = new System.Collections.Specialized.StringCollection();
+                System.Collections.Specialized.StringCollection ParentPaths = new System.Collections.Specialized.StringCollection();
                 foreach (var item in ScanOptions.CheckFolders)
                 {
                     try
@@ -980,9 +983,30 @@ namespace Cloud_Element_Test_Form
                        Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, thisPath);
                         if (currentRow != null)
                         {
-                            await scanForEmptyFolders(ScanOptions, currentRow);
+                            RemovedThis = await scanForEmptyFolders(ScanOptions, currentRow);
+                            if (!RemovedThis && !KeptPaths.Contains(currentRow.path)) KeptPaths.Add(currentRow.path);
                         }
-                        else NotFound++;
+                        else
+                        {
+                            NotFound++;
+                            thisPath = thisPath.Substring(0, thisPath.LastIndexOf('/'));
+                            if (thisPath.EndsWith("/")) thisPath = thisPath.TrimEnd('/');
+                            if (!ParentPaths.Contains(thisPath))
+                            {
+                               currentRow = await Cloud_Elements_API.FileOperations.GetCloudObjectInfo(ViaConnector, Cloud_Elements_API.CloudElementsConnector.DirectoryEntryType.Folder,
+                               Cloud_Elements_API.CloudElementsConnector.FileSpecificationType.Path, thisPath);
+                                if (currentRow != null)
+                                {
+                                    RemovedThis = await scanForEmptyFolders(ScanOptions, currentRow);
+                                    if (!RemovedThis && !KeptPaths.Contains(currentRow.path)) KeptPaths.Add(currentRow.path);
+                                }
+                                else
+                                {
+                                    NotFound++;
+                                }
+                                ParentPaths.Add(thisPath);
+                            }
+                        }
                     }
                     catch (Exception ee)
                     {
@@ -991,8 +1015,14 @@ namespace Cloud_Element_Test_Form
                     }
                    
                 }
-                TestStatusMsg(string.Format("Scanned {0} folders; {1} removed, {2} not found (already removed?) = {3} remain", ScanOptions.CheckFolders.Count, CountOfFoldersRemoved,NotFound,
-                                ScanOptions.CheckFolders.Count-( CountOfFoldersRemoved+ NotFound)));
+                TestStatusMsg(string.Format("Scanned {0} folders; {1} removed, {2} not found (already removed?) = {3} remain", ScanOptions.CheckFolders.Count + ParentPaths.Count, CountOfFoldersRemoved,NotFound,
+                                KeptPaths.Count));
+                TestStatusMsg("vvv");
+                foreach (var item in KeptPaths)
+                {
+                    TestStatusMsg(item);
+                }
+                TestStatusMsg("^^^");
                 ViaConnector.Close();
             }
             else             await scanForEmptyFolders(ScanOptions, currentRow);
