@@ -24,7 +24,7 @@ namespace Cloud_Element_Test_Form
         private EmptyFolderOptions ScanOptions = new EmptyFolderOptions();
         private Cloud_Elements_API.CloudAuthorization APIAuthorization;
         private Cloud_Elements_API.CloudElementsConnector APIConnector;
-        private string ApiURL;
+         
 
         private Stack<String> FolderPathHistory = new Stack<String>(9);
         private String WorkPath { get { return txtWorkFolder.Text; } }
